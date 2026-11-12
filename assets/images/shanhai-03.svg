@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img">
+  <defs>
+    
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c4cbb5"/><stop offset=".55" stop-color="#86947b"/><stop offset="1" stop-color="#3f5140"/></linearGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#fff4d8" stop-opacity=".55"/><stop offset="1" stop-color="#fff4d8" stop-opacity="0"/></linearGradient>
+    <linearGradient id="trunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1d2a20"/><stop offset=".5" stop-color="#354333"/><stop offset="1" stop-color="#17231a"/></linearGradient>
+    
+  </defs>
+  
+  <rect width="1200" height="1500" fill="url(#bg)"/>
+  <path d="M440 -80 L700 -80 L1030 1500 L700 1500Z" fill="url(#ray)" filter="url(#blur14)"/>
+  <path d="M620 -80 L760 -80 L1100 1500 L820 1500Z" fill="url(#ray)" opacity=".55" filter="url(#blur14)"/>
+  <g opacity=".55" fill="#405340">
+    <rect x="90" y="0" width="56" height="1500" rx="20"/>
+    <rect x="260" y="0" width="28" height="1500" rx="10"/>
+    <rect x="940" y="0" width="70" height="1500" rx="24"/>
+    <rect x="1090" y="0" width="34" height="1500" rx="12"/>
+  </g>
+  <g fill="url(#trunk)">
+    <path d="M150 -40 q-20 460 -75 1540 h120 q34 -980 24 -1540Z"/>
+    <path d="M340 -40 q10 520 -5 1540 h85 q22 -1010 8 -1540Z" opacity=".9"/>
+    <path d="M900 -60 q40 560 20 1560 h120 q-40 -1030 -25 -1560Z"/>
+    <path d="M1030 -40 q55 560 55 1540 h95 q-20 -980 -40 -1540Z" opacity=".8"/>
+  </g>
+  <g fill="none" stroke="#263a28" stroke-width="6" stroke-linecap="round" opacity=".9">
+    <path d="M75 340 q90 -50 170 -15 M55 690 q70 -60 185 -22 M890 420 q80 -55 190 -16 M960 830 q80 -50 180 -10"/>
+    <path d="M170 260 q80 -90 190 -60 M960 300 q100 -80 190 -30"/>
+  </g>
+  <g fill="#243422" opacity=".75">
+    <ellipse cx="520" cy="1300" rx="150" ry="45"/>
+    <ellipse cx="760" cy="1370" rx="190" ry="55"/>
+    <ellipse cx="230" cy="1410" rx="170" ry="60"/>
+    <ellipse cx="1000" cy="1260" rx="130" ry="38"/>
+  </g>
+  <g fill="none" stroke="#b7c09c" stroke-width="3" opacity=".55">
+    <path d="M480 1170 q-30 -80 -90 -120 M500 1170 q35 -95 105 -130 M530 1170 q5 -120 45 -175"/>
+    <path d="M690 1230 q-50 -90 -120 -120 M710 1230 q30 -110 90 -150"/>
+  </g>
+  <path d="M0 1440 Q 300 1370 600 1420 T 1200 1400 V1500 H0Z" fill="#1c2b1f" opacity=".9"/>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1200" height="1500" filter="url(#grain)" opacity=".12"/>
+  <rect width="1200" height="1500" fill="url(#vignette)"/>
+</svg>

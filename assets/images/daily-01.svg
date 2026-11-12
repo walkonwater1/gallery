@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img">
+  <defs>
+    
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e7dcc8"/><stop offset=".6" stop-color="#d6c5aa"/><stop offset="1" stop-color="#b8a181"/></linearGradient>
+    <linearGradient id="light" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3d6" stop-opacity=".85"/><stop offset="1" stop-color="#fff3d6" stop-opacity="0"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a98e6d"/><stop offset="1" stop-color="#7d6348"/></linearGradient>
+    
+  </defs>
+  
+  <rect width="1200" height="1500" fill="url(#wall)"/>
+  <path d="M0 0 H700 L1200 720 V0Z" fill="url(#light)"/>
+  <path d="M0 1100 L1200 830 V1500 H0Z" fill="url(#floor)"/>
+  <path d="M0 1100 L1200 830 V860 L0 1140Z" fill="#4e4233" opacity=".2"/>
+  <g transform="translate(560 780)">
+    <path d="M-140 0 H140 V26 H-140Z" fill="#6d5842"/>
+    <path d="M-120 26 L-135 330 H-94 L-78 26Z" fill="#80674c"/>
+    <path d="M120 26 L150 330 H109 L86 26Z" fill="#80674c"/>
+    <path d="M-135 330 H-94 L-85 390 H-156Z" fill="#5f4b37"/>
+    <path d="M109 330 H150 L176 390 H118Z" fill="#5f4b37"/>
+    <path d="M-140 0 V-270 Q -60 -320 0 -284 Q 70 -328 140 -270 V0Z" fill="#9a7d5d"/>
+    <path d="M-140 -240 Q 0 -200 140 -240 V-120 Q 0 -160 -140 -120Z" fill="#e9dcc4" opacity=".65"/>
+  </g>
+  <path d="M640 760 L1000 1240 L520 1240Z" fill="#4f4030" opacity=".14"/>
+  <g fill="#cbb696" opacity=".6">
+    <rect x="120" y="1140" width="150" height="26"/>
+    <rect x="155" y="1166" width="110" height="12"/>
+  </g>
+  <g opacity=".3" fill="#7a654b">
+    <path d="M300 250 Q 430 210 520 300 Q 410 380 300 250Z"/>
+    <path d="M330 330 Q 450 300 500 390 Q 390 450 330 330Z"/>
+  </g>
+  <g fill="none" stroke="#64533d" stroke-width="4" opacity=".3">
+    <path d="M840 0 L760 1100 M920 0 L860 1100"/>
+  </g>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1200" height="1500" filter="url(#grain)" opacity=".1"/>
+  <rect width="1200" height="1500" fill="url(#vignette)"/>
+</svg>

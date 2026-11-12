@@ -1,0 +1,16 @@
+# Cloudflare Tunnel 本地配置示例（可选）
+#
+# 大多数情况下，直接用 Cloudflare 面板生成的 Token 安装更简单：
+#   sudo cloudflared service install <TOKEN>
+#
+# 如果你想用本地配置文件，把本文件复制到：
+#   /etc/cloudflared/config.yml
+# 然后修改 tunnel、credentials-file 和 hostname。
+
+tunnel: 00000000-0000-0000-0000-000000000000
+credentials-file: /etc/cloudflared/00000000-0000-0000-0000-000000000000.json
+
+ingress:
+  - hostname: album.example.com
+    service: http://127.0.0.1:8080
+  - service: http_status:404

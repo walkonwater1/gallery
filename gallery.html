@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片库 · 拾光画册</title>
+  <meta name="description" content="由 NAS 文件夹自动整理的照片库，按册集与章节排列。">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body id="top" class="page-archive">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header" data-header="paper">
+    <div class="shell header-inner">
+      <a class="brand" href="index.html" aria-label="拾光画册首页">
+        <span class="brand-cn">拾光</span>
+        <span class="brand-en">SHIGUANG</span>
+      </a>
+      <nav class="site-nav" id="site-nav" aria-label="主导航">
+        <a href="index.html">首页 <span>Home</span></a>
+        <a href="albums.html">册集 <span>Albums</span></a>
+        <a href="gallery.html" aria-current="page">照片库 <span>Archive</span></a>
+        <a href="about.html">关于 <span>About</span></a>
+      </nav>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="menu-label">菜单</span>
+        <span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-intro shell">
+      <div class="page-intro-head">
+        <div class="reveal">
+          <p class="eyebrow">Auto Archive · NAS</p>
+          <h1>照片库<small>The Archive</small></h1>
+        </div>
+        <aside class="page-intro-aside reveal reveal-delay-1">
+          <p>
+            这里没有手工选片。每个顶层文件夹是一册，子文件夹是一章；
+            照片按 EXIF 拍摄时间排序，自动生成封面、图注与缩略图。
+          </p>
+          <div class="page-stats" aria-label="照片库数据">
+            <div><strong>00</strong><span>自动册集</span></div>
+            <div><strong>0</strong><span>收录影像</span></div>
+            <div><strong>—</strong><span>最近年份</span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="archive" aria-label="自动册集列表">
+      <div class="shell">
+        <div class="archive-end reveal">
+          <p><span class="pulse-dot" aria-hidden="true"></span>还没有可生成的册集。把照片放进 NAS 文件夹，再运行一次脚本。</p>
+        </div>
+
+        <div class="archive-end reveal">
+          <p><span class="pulse-dot" aria-hidden="true"></span>此页由 NAS 文件夹自动生成 · 增删照片后重新运行脚本即可</p>
+          <a class="text-link" href="albums.html">返回手工册集</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-top">
+      <div>
+        <p class="footer-kicker">STAY IN THE LIGHT</p>
+        <p class="footer-title">把日子过成<br>值得翻页的样子。</p>
+      </div>
+      <div class="footer-side">
+        <nav class="footer-nav" aria-label="页脚导航">
+          <a href="albums.html">全部册集</a>
+          <a href="gallery.html">照片库</a>
+          <a href="album-shanhai.html">山海之间</a>
+          <a href="album-city.html">城市切片</a>
+          <a href="album-daily.html">日常的光</a>
+          <a href="album-snow.html">雪线以北</a>
+          <a href="about.html">关于画册</a>
+          <a href="mailto:hello@shiguang.example">联系我们</a>
+        </nav>
+        <a class="footer-mail" href="mailto:hello@shiguang.example">hello@shiguang.example</a>
+      </div>
+    </div>
+    <div class="shell footer-bottom">
+      <span>© 2026 拾光画册 · SHIGUANG</span>
+      <span>电子画册 · Vol. 01</span>
+      <a href="#top">回到顶部 ↑</a>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

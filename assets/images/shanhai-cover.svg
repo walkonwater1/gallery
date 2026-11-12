@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" role="img">
+  <defs>
+    
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a9bbb4"/>
+      <stop offset=".48" stop-color="#d8d3c2"/>
+      <stop offset=".72" stop-color="#e8cba8"/>
+      <stop offset="1" stop-color="#c9a47d"/>
+    </linearGradient>
+    <linearGradient id="ridge1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#718b83"/><stop offset="1" stop-color="#526b64"/>
+    </linearGradient>
+    <linearGradient id="ridge2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#425c55"/><stop offset="1" stop-color="#2a403b"/>
+    </linearGradient>
+    <linearGradient id="ridge3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#253832"/><stop offset="1" stop-color="#15241f"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffe9bd" stop-opacity=".95"/>
+      <stop offset=".5" stop-color="#f3cf9b" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#f3cf9b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mist" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3eee2" stop-opacity="0"/>
+      <stop offset=".45" stop-color="#f3eee2" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#f3eee2" stop-opacity="0"/>
+    </linearGradient>
+    
+  </defs>
+  
+  <rect width="1200" height="1600" fill="url(#sky)"/>
+  <circle cx="815" cy="600" r="250" fill="url(#sun)" filter="url(#soft)"/>
+  <circle cx="815" cy="600" r="66" fill="#f6deb1" opacity=".85"/>
+  <path d="M0 760 L120 700 L240 742 L360 660 L510 745 L650 690 L790 755 L930 690 L1080 748 L1200 700 V1050 H0Z" fill="url(#ridge1)" opacity=".65"/>
+  <rect x="0" y="770" width="1200" height="115" fill="url(#mist)" filter="url(#blur14)"/>
+  <path d="M0 940 L130 840 L250 900 L390 790 L520 880 L650 835 L770 930 L900 820 L1030 900 L1140 855 L1200 885 V1220 H0Z" fill="url(#ridge2)"/>
+  <rect x="0" y="965" width="1200" height="95" fill="url(#mist)" opacity=".55" filter="url(#blur14)"/>
+  <path d="M0 1180 L150 1070 L280 1140 L420 1010 L560 1130 L700 1050 L860 1160 L1010 1070 L1130 1140 L1200 1100 V1600 H0Z" fill="url(#ridge3)"/>
+  <path d="M0 1370 L170 1270 L330 1340 L500 1250 L670 1335 L840 1260 L1010 1360 L1200 1280 V1600 H0Z" fill="#101c18" opacity=".9"/>
+  <g fill="none" stroke="#1c2b26" stroke-width="5" stroke-linecap="round" opacity=".6">
+    <path d="M420 1290 l-19 -30 M420 1290 l4 -38 M420 1290 l22 -27"/>
+    <path d="M978 1320 l-16 -26 M978 1320 l3 -32 M978 1320 l19 -23"/>
+  </g>
+  <g fill="none" stroke="#42514a" stroke-width="3" stroke-linecap="round" opacity=".9">
+    <path d="M286 420 q15 -11 30 0 q15 -11 30 0"/>
+    <path d="M362 385 q11 -8 22 0 q11 -8 22 0"/>
+    <path d="M252 458 q8 -6 16 0 q8 -6 16 0"/>
+  </g>
+  <rect x="74" y="74" width="1052" height="1452" fill="none" stroke="#f5efe2" stroke-opacity=".25"/>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1200" height="1600" filter="url(#grain)" opacity=".11"/>
+  <rect width="1200" height="1600" fill="url(#vignette)"/>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1067" viewBox="0 0 1600 1067" role="img">
+  <defs>
+    
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#597081"/><stop offset=".55" stop-color="#b08974"/><stop offset="1" stop-color="#dfae86"/></linearGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d4548"/><stop offset="1" stop-color="#1b2224"/></linearGradient>
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#232b2d"/><stop offset=".5" stop-color="#49504f"/><stop offset="1" stop-color="#1b2021"/></linearGradient>
+    <radialGradient id="light" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd39c" stop-opacity=".9"/><stop offset="1" stop-color="#ffd39c" stop-opacity="0"/></radialGradient>
+    
+  </defs>
+  
+  <rect width="1600" height="1067" fill="url(#sky)"/>
+  <g fill="#4d5b62" opacity=".55">
+    <rect x="0" y="430" width="90" height="330"/><rect x="115" y="360" width="70" height="400"/>
+    <rect x="210" y="470" width="120" height="290"/><rect x="360" y="330" width="80" height="430"/>
+    <rect x="470" y="440" width="140" height="320"/><rect x="640" y="390" width="95" height="370"/>
+    <rect x="770" y="455" width="130" height="305"/><rect x="930" y="350" width="75" height="410"/>
+    <rect x="1040" y="430" width="115" height="330"/><rect x="1190" y="380" width="95" height="380"/>
+    <rect x="1320" y="445" width="140" height="315"/><rect x="1485" y="360" width="115" height="400"/>
+  </g>
+  <path d="M-100 900 Q 420 650 900 650 Q 1300 650 1700 790 V1067 H-100Z" fill="url(#road)"/>
+  <path d="M0 740 Q 420 560 860 570 Q 1280 580 1600 720" fill="none" stroke="url(#arc)" stroke-width="75"/>
+  <path d="M0 830 Q 430 650 870 655 Q 1280 660 1600 800" fill="none" stroke="#2b3335" stroke-width="25" opacity=".9"/>
+  <path d="M-60 900 Q 400 720 880 720 Q 1320 720 1660 860" fill="none" stroke="#69706c" stroke-width="6" opacity=".6"/>
+  <g stroke="#d6b490" stroke-width="4" opacity=".5">
+    <path d="M760 770 L650 1067 M840 775 L930 1067"/>
+    <path d="M730 790 L690 1067 M860 790 L915 1067"/>
+  </g>
+  <circle cx="280" cy="610" r="30" fill="url(#light)" filter="url(#blur6)"/><circle cx="280" cy="610" r="4" fill="#ffe0af"/><circle cx="650" cy="585" r="30" fill="url(#light)" filter="url(#blur6)"/><circle cx="650" cy="585" r="4" fill="#ffe0af"/><circle cx="1020" cy="575" r="30" fill="url(#light)" filter="url(#blur6)"/><circle cx="1020" cy="575" r="4" fill="#ffe0af"/><circle cx="1370" cy="600" r="30" fill="url(#light)" filter="url(#blur6)"/><circle cx="1370" cy="600" r="4" fill="#ffe0af"/>
+  <g fill="#1b2325">
+    <path d="M260 600 h18 v310 h-18Z"/><path d="M630 580 h16 v300 h-16Z"/>
+    <path d="M1000 570 h15 v295 h-15Z"/><path d="M1350 595 h18 v300 h-18Z"/>
+  </g>
+  <g fill="#252d2e" opacity=".9">
+    <path d="M60 790 l45 -20 v45 l-45 20Z"/><path d="M1480 780 l60 -18 v50 l-60 18Z"/>
+  </g>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1600" height="1067" filter="url(#grain)" opacity=".1"/>
+  <rect width="1600" height="1067" fill="url(#vignette)"/>
+</svg>

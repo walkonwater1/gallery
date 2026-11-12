@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" role="img">
+  <defs>
+    
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9ddc8"/><stop offset=".55" stop-color="#d8c7ae"/><stop offset="1" stop-color="#b9a68a"/></linearGradient>
+    <linearGradient id="curtain" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f8f3e8" stop-opacity=".9"/><stop offset=".3" stop-color="#e8ddca" stop-opacity=".55"/>
+      <stop offset=".55" stop-color="#fbf6ea" stop-opacity=".8"/><stop offset=".8" stop-color="#e4d7c0" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#f6efe1" stop-opacity=".85"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1cd" stop-opacity=".9"/><stop offset="1" stop-color="#fff1cd" stop-opacity="0"/></linearGradient>
+    
+  </defs>
+  
+  <rect width="1200" height="1600" fill="url(#bg)"/>
+  <path d="M680 0 Q 830 250 800 600 T 920 1600 L1200 1600 V0Z" fill="url(#curtain)" opacity=".85"/>
+  <path d="M0 0 H470 Q 430 460 500 900 T 430 1600 H0Z" fill="url(#curtain)" opacity=".55"/>
+  <g fill="none" stroke="#b7a589" stroke-width="3" opacity=".35">
+    <path d="M800 0 Q 900 400 860 800 T 960 1600"/>
+    <path d="M920 0 Q 1000 360 960 760 T 1050 1600"/>
+  </g>
+  <path d="M60 0 H500 L920 1600 H0Z" fill="url(#sun)" opacity=".45"/>
+  
+    <g fill="#4d5b45" opacity=".75">
+      <path d="M830 1030 Q 790 900 850 790 Q 900 880 870 1010Z"/>
+      <path d="M890 1090 Q 900 950 1000 885 Q 1010 1000 920 1080Z"/>
+      <path d="M760 1110 Q 690 1020 710 910 Q 790 970 790 1080Z"/>
+      <path d="M920 1150 Q 1010 1060 1080 1060 Q 1040 1150 940 1170Z"/>
+      <path d="M810 1200 Q 720 1170 680 1100 Q 780 1100 830 1170Z"/>
+    </g>
+    <g fill="none" stroke="#3c4938" stroke-width="6" stroke-linecap="round">
+      <path d="M860 1220 Q 850 1080 850 820 M860 1060 Q 930 970 990 910 M850 1130 Q 770 1060 720 940"/>
+    </g>
+    
+  <g opacity=".25" fill="#6b5f4c">
+    <path d="M850 1200 Q 770 1240 740 1310 L860 1310Z"/>
+    <ellipse cx="860" cy="1210" rx="100" ry="22"/>
+  </g>
+  <g stroke="#8c7d66" stroke-width="2" opacity=".3">
+    <path d="M0 1450 H1200 M0 1490 H1200"/>
+  </g>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1200" height="1600" filter="url(#grain)" opacity=".1"/>
+  <rect width="1200" height="1600" fill="url(#vignette)"/>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img">
+  <defs>
+    
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5a5f"/><stop offset=".6" stop-color="#7d8985"/><stop offset="1" stop-color="#b3ac9c"/></linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#525e5e"/><stop offset="1" stop-color="#222c2e"/></linearGradient>
+    <radialGradient id="bokeh" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd7a3" stop-opacity=".9"/><stop offset=".7" stop-color="#ffd7a3" stop-opacity=".4"/><stop offset="1" stop-color="#ffd7a3" stop-opacity="0"/></radialGradient>
+    <linearGradient id="reflection" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efc99a" stop-opacity=".45"/><stop offset="1" stop-color="#efc99a" stop-opacity="0"/></linearGradient>
+    
+  </defs>
+  
+  <rect width="1200" height="1500" fill="url(#sky)"/>
+  <circle cx="130" cy="400" r="42" fill="url(#bokeh)" opacity="0.7" filter="url(#blur6)"/><circle cx="1010" cy="350" r="34" fill="url(#bokeh)" opacity="0.5" filter="url(#blur6)"/><circle cx="1090" cy="540" r="50" fill="url(#bokeh)" opacity="0.6" filter="url(#blur6)"/><circle cx="180" cy="690" r="28" fill="url(#bokeh)" opacity="0.55" filter="url(#blur6)"/><circle cx="860" cy="250" r="22" fill="url(#bokeh)" opacity="0.45" filter="url(#blur6)"/><circle cx="70" cy="900" r="60" fill="url(#bokeh)" opacity="0.35" filter="url(#blur6)"/>
+  <g fill="#2f3b3d" opacity=".6">
+    <rect x="0" y="280" width="150" height="700"/><rect x="170" y="200" width="90" height="780"/>
+    <rect x="930" y="180" width="120" height="800"/><rect x="1070" y="330" width="130" height="650"/>
+  </g>
+  <rect x="0" y="900" width="1200" height="600" fill="url(#ground)"/>
+  <g fill="#c7c3b2" opacity=".7">
+    <path d="M-100 1050 L350 940 L390 1010 L-100 1160Z"/>
+    <path d="M-100 1220 L420 1080 L460 1150 L-100 1330Z"/>
+    <path d="M-100 1390 L500 1215 L540 1285 L-100 1500Z"/>
+    <path d="M1300 940 L850 1050 L810 1120 L1300 1050Z"/>
+    <path d="M1300 1110 L880 1190 L850 1260 L1300 1200Z"/>
+  </g>
+  <path d="M560 860 Q 600 930 610 1070 Q 618 1270 600 1500 H460 Q 450 1250 470 1070 Q 490 930 560 860Z" fill="#202b2d"/>
+  <path d="M520 830 Q 520 690 600 690 Q 680 690 680 830Z" fill="#2b3334"/>
+  <path d="M550 895 L610 850" stroke="#202b2d" stroke-width="10"/>
+  <path d="M620 1000 L670 1070" stroke="#202b2d" stroke-width="14" stroke-linecap="round"/>
+  <path d="M530 930 Q 610 875 700 925" fill="none" stroke="#202b2d" stroke-width="9" stroke-linecap="round"/>
+  <path d="M565 780 L605 780" stroke="#efe4cf" stroke-width="5" stroke-linecap="round" opacity=".5"/>
+  <path d="M0 930 Q 300 890 600 920 T 1200 910 V1500 H0Z" fill="url(#reflection)" opacity=".4"/>
+  <g stroke="#d3c3a5" stroke-width="2" opacity=".18">
+    <path d="M0 1000 H300 M700 1000 H1200 M0 1080 H250 M760 1080 H1200 M0 1160 H200 M820 1160 H1200"/>
+  </g>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1200" height="1500" filter="url(#grain)" opacity=".12"/>
+  <rect width="1200" height="1500" fill="url(#vignette)"/>
+</svg>

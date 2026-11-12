@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img">
+  <defs>
+    
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e1dacb"/><stop offset="1" stop-color="#b9b29f"/></linearGradient>
+    <linearGradient id="light" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffefca" stop-opacity=".85"/><stop offset="1" stop-color="#ffefca" stop-opacity="0"/></linearGradient>
+    <linearGradient id="vase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a89c86"/><stop offset=".5" stop-color="#ded4c1"/><stop offset="1" stop-color="#958975"/></linearGradient>
+    
+  </defs>
+  
+  <rect width="1200" height="1500" fill="url(#wall)"/>
+  <path d="M0 0 H600 L1200 600 V0Z" fill="url(#light)"/>
+  <g opacity=".25" fill="#6e6a59">
+    <path d="M760 150 Q 850 250 820 470 Q 780 600 850 800 Q 730 620 760 400Z"/>
+    <path d="M890 220 Q 980 320 940 500 Q 910 650 980 820 Q 880 620 890 430Z"/>
+    <path d="M700 380 Q 760 450 740 590 Q 730 700 780 840 Q 690 700 700 540Z"/>
+  </g>
+  <g fill="none" stroke="#7f7a68" stroke-width="8" opacity=".35">
+    <path d="M830 1660 Q 800 1290 790 1070 Q 780 900 850 760 M850 1100 Q 940 950 1010 880 M790 1120 Q 690 1000 650 900"/>
+  </g>
+  <g fill="#59624f" opacity=".8">
+    <path d="M840 760 Q 800 640 850 560 Q 900 650 870 760Z"/>
+    <path d="M880 880 Q 970 790 1040 810 Q 970 890 890 900Z"/>
+    <path d="M780 950 Q 690 890 660 810 Q 740 840 800 920Z"/>
+    <path d="M900 1010 Q 990 970 1040 1000 Q 970 1045 890 1040Z"/>
+    <path d="M760 1050 Q 700 1010 680 950 Q 740 980 780 1030Z"/>
+  </g>
+  <g transform="translate(600 1110)">
+    <ellipse cx="0" cy="290" rx="210" ry="38" fill="#6f6555" opacity=".22"/>
+    <path d="M-90 0 Q -160 60 -150 180 Q -140 300 0 300 Q 140 300 150 180 Q 160 60 90 0Z" fill="url(#vase)"/>
+    <ellipse cx="0" cy="0" rx="90" ry="24" fill="#8c806c"/>
+    <ellipse cx="0" cy="6" rx="69" ry="17" fill="#4b4438" opacity=".55"/>
+    <path d="M-108 120 Q -65 155 -55 250" fill="none" stroke="#f2e9d6" stroke-width="12" opacity=".22"/>
+  </g>
+  <path d="M0 1320 H1200 V1500 H0Z" fill="#9d917c" opacity=".35"/>
+  <path d="M0 1320 H1200" stroke="#786e5d" stroke-width="4" opacity=".4"/>
+  
+  
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blur14"><feGaussianBlur stdDeviation="14"/></filter>
+  <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#0d0c0a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#0d0c0a" stop-opacity=".26"/>
+  </radialGradient>
+  <rect width="1200" height="1500" filter="url(#grain)" opacity=".1"/>
+  <rect width="1200" height="1500" fill="url(#vignette)"/>
+</svg>
