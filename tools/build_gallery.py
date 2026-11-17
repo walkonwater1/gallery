@@ -1050,6 +1050,7 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#141310">
   <title>{e(album.title)} · 水上行走</title>
   <meta name="description" content="{e(album.description)}">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -1160,13 +1161,14 @@ def gallery_html(albums: list[Album], depth: int) -> str:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#141310">
   <title>照片库 · 水上行走</title>
   <meta name="description" content="照片库。">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add("js");</script>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body id="top" class="page-archive">
+<body id="top" class="page-archive page-gallery">
   <a class="skip-link" href="#main">跳到主要内容</a>
 
 {header_html("gallery.html")}
@@ -1206,6 +1208,7 @@ BOOK_TEMPLATE = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#141310">
   <title>__BOOK_TITLE__ · 水上行走</title>
   <meta name="description" content="可在线翻阅的摄影画册。">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
