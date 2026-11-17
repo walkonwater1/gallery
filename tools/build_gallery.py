@@ -1045,7 +1045,6 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
           </a>"""
     )
 
-    meta_location = album.location or album.title
     subtitle_html = f'<p class="album-en">{e(album.subtitle)}</p>' if album.subtitle else ""
     chapter_blocks = []
     photo_number = 1
@@ -1093,8 +1092,6 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
               <h1>{e(album.title)}</h1>
               {subtitle_html}
               <div class="album-hero-meta">
-                <span>{e(meta_location)}</span>
-                <span>{album.count} 幅影像</span>
                 <span>约 {album.reading_minutes} 分钟阅读</span>
               </div>
             </div>
