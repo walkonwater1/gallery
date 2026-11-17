@@ -6467,3 +6467,13 @@ body.page-archive.page-gallery .page-stats span {
 body.page-archive.page-gallery .archive {
   padding-top: clamp(1.2rem, 2vw, 2rem);
 }
+
+/* ---------- 相册标题字号收敛 ---------- */
+
+body.page-archive.page-gallery .page-intro h1 {
+  font-size: clamp(3rem, 6.8vw, 6.8rem);
+}
+
+body.page-archive.page-gallery .page-intro h1 small {
+  font-size: max(0.58rem, 0.11em);
+}
