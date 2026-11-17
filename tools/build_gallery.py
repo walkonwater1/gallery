@@ -933,6 +933,18 @@ def figure_html(photo: Photo, number: int, css_class: str = "photo", in_grid: bo
     from urllib.parse import quote as _urlquote
     original_href = "originals/" + _urlquote(str(photo.rel_source))
     photo_file = Path(photo.rel_source).name
+    cap_date = photo.date_label
+    cap_text = photo.caption
+    if cap_date and cap_text.startswith(cap_date):
+        cam_text = cap_text[len(cap_date):].lstrip(" ·")
+    else:
+        cam_text = cap_text
+    cam_html = f'<span class="cap-cam">{e(cam_text)}</span>' if cam_text else ""
+    right_html = ""
+    if photo.location:
+        right_html += f'<span class="cap-loc">{e(photo.location)}</span>'
+    if cap_date:
+        right_html += f'<span class="cap-time">{e(cap_date)}</span>'
 
     return f"""          <figure class="{e(css_class)}">
             <a class="photo-link" href="{e(original_href)}"
@@ -944,9 +956,8 @@ def figure_html(photo: Photo, number: int, css_class: str = "photo", in_grid: bo
                    alt="{e(alt)}" width="{default["w"]}" height="{default["h"]}" loading="{loading}">
             </a>
             <figcaption>
-              <span class="cap-no">No. {number:02d}</span>
-              <span>{e(photo.caption)}</span>
-              <span class="cap-loc">{e(photo.location)}</span>
+              <span class="cap-left"><span class="cap-no">No. {number:02d}</span>{cam_html}</span>
+              <span class="cap-right">{right_html}</span>
             </figcaption>
           </figure>"""
 
@@ -1076,28 +1087,27 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
           </div>
         </div>
         <div class="album-hero-content">
-          <div class="shell">
-            <p class="eyebrow">Auto Album · {e(album.year or album.date_range)}</p>
-            <h1>{e(album.title)}</h1>
-            {subtitle_html}
-            <div class="album-hero-meta">
-              <span>{e(meta_location)}</span>
-              <span>{album.count} 幅影像</span>
-              <span>约 {album.reading_minutes} 分钟阅读</span>
+          <div class="shell album-hero-grid">
+            <div class="album-hero-main">
+              <p class="eyebrow">Auto Album · {e(album.year or album.date_range)}</p>
+              <h1>{e(album.title)}</h1>
+              {subtitle_html}
+              <div class="album-hero-meta">
+                <span>{e(meta_location)}</span>
+                <span>{album.count} 幅影像</span>
+                <span>约 {album.reading_minutes} 分钟阅读</span>
+              </div>
             </div>
+            <dl class="album-facts album-facts--hero">
+              <div><dt>年份</dt><dd>{e(album.year or "—")}</dd></div>
+              <div><dt>地点</dt><dd>{e(album.location or "—")}</dd></div>
+              <div><dt>影像</dt><dd>{album.count} 幅</dd></div>
+              <div><dt>页数</dt><dd>{album.pages} 页</dd></div>
+              <div><dt>介质</dt><dd>数码 · 自动整理</dd></div>
+            </dl>
           </div>
         </div>
       </header>
-
-      <section class="album-opening shell">
-        <dl class="album-facts">
-          <div><dt>年份</dt><dd>{e(album.year or "—")}</dd></div>
-          <div><dt>地点</dt><dd>{e(album.location or "—")}</dd></div>
-          <div><dt>影像</dt><dd>{album.count} 幅</dd></div>
-          <div><dt>页数</dt><dd>{album.pages} 页</dd></div>
-          <div><dt>介质</dt><dd>数码 · 自动整理</dd></div>
-        </dl>
-      </section>
 
 {chapters}
 

@@ -6484,3 +6484,111 @@ body.page-archive.page-gallery .page-intro h1 small {
 .book-page--spread.book-page--right {
   padding: 0 !important;
 }
+
+/* ---------- 册集内页：元数据并入首屏右侧 ---------- */
+
+.album-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  align-items: end;
+  gap: clamp(2rem, 5vw, 7rem);
+}
+
+.album-hero-main {
+  min-width: 0;
+}
+
+.album-facts--hero {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(247, 242, 230, 0.28);
+  align-self: end;
+}
+
+.album-facts--hero div {
+  padding: 0.55rem 0;
+  border-bottom-color: rgba(247, 242, 230, 0.14);
+  font-size: 0.66rem;
+}
+
+.album-facts--hero dt {
+  color: rgba(247, 242, 230, 0.55);
+}
+
+.album-facts--hero dd {
+  color: rgba(247, 242, 230, 0.88);
+}
+
+body.page-album .scroll-note {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .album-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.4rem;
+  }
+
+  .album-facts--hero {
+    padding-top: 0.65rem;
+  }
+
+  .album-facts--hero div {
+    padding: 0.45rem 0;
+  }
+}
+
+/* ---------- 图注：相机参数在左，地点与日期在右 ---------- */
+
+.photo figcaption {
+  flex-wrap: wrap;
+  row-gap: 0.35rem;
+}
+
+.photo figcaption .cap-left,
+.photo figcaption .cap-right {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.photo figcaption .cap-left {
+  flex-wrap: wrap;
+}
+
+.photo figcaption .cap-right {
+  margin-left: auto;
+  flex-shrink: 0;
+  gap: 0.8rem;
+}
+
+.photo figcaption .cap-cam {
+  color: var(--muted);
+}
+
+.photo figcaption .cap-loc {
+  margin-left: 0;
+}
+
+.photo figcaption .cap-time {
+  font-family: var(--font-latin);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 首屏元数据在照片上增加一点可读性 */
+.album-facts--hero {
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+}
+
+.album-facts--hero dt {
+  color: rgba(247, 242, 230, 0.72);
+}
+
+.album-facts--hero dd {
+  color: rgba(247, 242, 230, 0.95);
+}
