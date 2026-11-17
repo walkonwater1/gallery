@@ -6389,3 +6389,29 @@ body.page-archive .site-header.is-scrolled {
   color: var(--ink-soft);
   opacity: 1;
 }
+
+/* ---------- 照片库顶部统计更紧凑 ---------- */
+
+body.page-archive.page-gallery .page-intro {
+  padding-top: clamp(3.2rem, 6vw, 5rem);
+  padding-bottom: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+body.page-archive.page-gallery .page-stats div {
+  padding-top: 0.65rem;
+}
+
+body.page-archive.page-gallery .page-stats strong {
+  font-size: clamp(1.3rem, 2.1vw, 1.85rem);
+  line-height: 1.1;
+}
+
+body.page-archive.page-gallery .page-stats span {
+  margin-top: 0.15rem;
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+}
+
+body.page-archive.page-gallery .archive {
+  padding-top: clamp(1.8rem, 3vw, 2.8rem);
+}
