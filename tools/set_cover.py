@@ -4,7 +4,7 @@
 封面写在册集目录的 album.json 里，例如 {"cover": "P1096445.jpg"}。
 生成器 build_gallery.py 会优先用这张图做首页卡片和册集页头图。
 
-常用命令（盒子上也可以用 /root/set-cover.sh）：
+常用命令（盒子上也可以用 /root/start_sh/set-cover.sh）：
     python3 set_cover.py                     列出所有册集与当前封面
     python3 set_cover.py --photos 泉州       列出该册照片及序号
     python3 set_cover.py P1096445.jpg        按文件名设为封面（自动定位册集）
@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 SOURCE = Path(os.environ.get("ALBUM_SOURCE", "/root/photograph"))
-UPDATE = Path("/root/update-album.sh")
+UPDATE = Path("/root/start_sh/update-album.sh")
 CONFIG_NAME = "album.json"
 
 IMAGE_EXTS = {
@@ -98,7 +98,7 @@ def find_album(name: str) -> Path:
 
 def rebuild(enabled: bool) -> None:
     if not enabled:
-        print("已跳过重新生成；下次运行 bash /root/update-album.sh 后生效。")
+        print("已跳过重新生成；下次运行 bash /root/start_sh/update-album.sh 后生效。")
         return
     if not UPDATE.is_file():
         print(f"未找到 {UPDATE}，请手动重新生成画册。", file=sys.stderr)
@@ -127,8 +127,8 @@ def cmd_list() -> None:
         cover = str(load_config(d).get("cover") or "").strip()
         current = cover or "默认（按拍摄时间最早的一张）"
         print(f"  [{index:02d}] {d.name}  ·  {count} 张  ·  封面：{current}")
-    print("\n改封面：bash /root/set-cover.sh <照片文件名>")
-    print("看某册照片：bash /root/set-cover.sh --photos <册名>")
+    print("\n改封面：bash /root/start_sh/set-cover.sh <照片文件名>")
+    print("看某册照片：bash /root/start_sh/set-cover.sh --photos <册名>")
 
 
 def cmd_photos(name: str) -> None:
@@ -146,7 +146,7 @@ def cmd_photos(name: str) -> None:
         elif index == 1:
             mark = "  ← 当前封面（默认）"
         print(f"  {index:03d}  {photo.name}{mark}")
-    print(f"\n设置封面：bash /root/set-cover.sh {album_dir.name} <序号>")
+    print(f"\n设置封面：bash /root/start_sh/set-cover.sh {album_dir.name} <序号>")
 
 
 def cmd_set_file(name: str, rebuild_now: bool) -> None:

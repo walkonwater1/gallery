@@ -269,21 +269,21 @@ python3 tools/build_gallery.py
 如果管理接口没在运行（例如只把静态文件拷到别处托管），按钮会自动回退成「复制一行命令」的模式：
 
 ```bash
-bash /root/set-cover.sh P1096445.jpg       # 按文件名设置，自动定位册集
+bash /root/start_sh/set-cover.sh P1096445.jpg       # 按文件名设置，自动定位册集
 ```
 
 命令行还支持完整的查看与恢复：
 
 ```bash
-bash /root/set-cover.sh                    # 列出所有册集和当前封面
-bash /root/set-cover.sh --photos 泉州      # 列出该册照片和序号
-bash /root/set-cover.sh 泉州 12            # 按序号设置
-bash /root/set-cover.sh --clear 泉州       # 恢复默认（拍摄时间最早的一张）
+bash /root/start_sh/set-cover.sh                    # 列出所有册集和当前封面
+bash /root/start_sh/set-cover.sh --photos 泉州      # 列出该册照片和序号
+bash /root/start_sh/set-cover.sh 泉州 12            # 按序号设置
+bash /root/start_sh/set-cover.sh --clear 泉州       # 恢复默认（拍摄时间最早的一张）
 ```
 
-设置后会自动重新生成并部署。批量改多册时可加 `--no-rebuild`，全部改完再运行一次 `bash /root/update-album.sh`。也可以直接编辑 `album.json`，已有的 `title`、`prologue`、`chapters` 等字段会保留，工具只改 `cover`。
+设置后会自动重新生成并部署。批量改多册时可加 `--no-rebuild`，全部改完再运行一次 `bash /root/start_sh/update-album.sh`。也可以直接编辑 `album.json`，已有的 `title`、`prologue`、`chapters` 等字段会保留，工具只改 `cover`。
 
-`cover` 里的文件名必须真的在该册集目录（或子目录）中；填错时生成器会静默回退到默认封面，可用 `bash /root/set-cover.sh` 检查当前配置。
+`cover` 里的文件名必须真的在该册集目录（或子目录）中；填错时生成器会静默回退到默认封面，可用 `bash /root/start_sh/set-cover.sh` 检查当前配置。
 
 ### 隐藏不想展示的照片
 
@@ -300,12 +300,12 @@ bash /root/set-cover.sh --clear 泉州       # 恢复默认（拍摄时间最早
 - **命令行**（在盒子上）：
 
   ```bash
-  bash /root/hide-photo.sh --list              # 查看各册隐藏了哪些
-  bash /root/hide-photo.sh P1085284.jpg        # 隐藏，自动定位册集
-  bash /root/hide-photo.sh --show P1085284.jpg # 恢复显示
+  bash /root/start_sh/hide-photo.sh --list              # 查看各册隐藏了哪些
+  bash /root/start_sh/hide-photo.sh P1085284.jpg        # 隐藏，自动定位册集
+  bash /root/start_sh/hide-photo.sh --show P1085284.jpg # 恢复显示
   ```
 
-  执行后自动重新生成。批量操作可加 `--no-rebuild`，最后统一运行 `bash /root/update-album.sh`。
+  执行后自动重新生成。批量操作可加 `--no-rebuild`，最后统一运行 `bash /root/start_sh/update-album.sh`。
 
 ### 画册模式
 
@@ -325,12 +325,12 @@ bash /root/set-cover.sh --clear 泉州       # 恢复默认（拍摄时间最早
 - 在相册（或册集页）点开任意照片，灯箱工具条的「加入画册 / 移出画册」可随时调整；也可看原图、缩放、设为封面或隐藏
 - 只加载当前跨页和相邻跨页的图片，不会一次拉取全部照片
 
-画册清单保存在 `/root/digital_album/book.json`，只记录文件名，不复制也不改动原图。也可以在盒子上维护：
+画册清单保存在 `/root/lixin/digital_album/book.json`，只记录文件名，不复制也不改动原图。也可以在盒子上维护：
 
 ```bash
-bash /root/book-photo.sh                       # 查看当前画册清单
-bash /root/book-photo.sh --add P1096445.jpg     # 加入画册
-bash /root/book-photo.sh --remove P1096445.jpg  # 移出画册
+bash /root/start_sh/book-photo.sh                       # 查看当前画册清单
+bash /root/start_sh/book-photo.sh --add P1096445.jpg     # 加入画册
+bash /root/start_sh/book-photo.sh --remove P1096445.jpg  # 移出画册
 ```
 
 想换默认册集，把 `book.json` 里的 `album` 改成对应文件夹名即可。画册页由 `tools/build_gallery.py` 生成的 `book.html` 提供，照片数据内嵌在页面里，不需要数据库；隐藏名单同样生效。
@@ -341,7 +341,7 @@ bash /root/book-photo.sh --remove P1096445.jpg  # 移出画册
 
 - `deploy/album-api.py` 只监听 `127.0.0.1:8765`，由 Nginx 把 `/api/` 反代过去，对外仍是同一个站点、同一个端口
 - `deploy/album-api.service` 是 systemd 单元，`systemctl enable --now album-api` 后开机自启
-- 接口收到请求后写 `album.json` 或 `book.json`，串行执行 `/root/update-album.sh`，完成后才返回；封面/隐藏操作后前端跳回相册，画册加入/移出则原地更新按钮
+- 接口收到请求后写 `album.json` 或 `book.json`，串行执行 `/root/start_sh/update-album.sh`，完成后才返回；封面/隐藏操作后前端跳回相册，画册加入/移出则原地更新按钮
 - `POST /api/book-add`、`POST /api/book-remove` 维护画册清单，`GET /api/book` 返回当前画册照片，供灯箱按钮判断状态
 - `GET /api/status` 可查看服务是否在跑、是否正在重新生成
 

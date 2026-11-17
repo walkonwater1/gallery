@@ -7,11 +7,11 @@
 生成器会跳过这些照片，首页、册集页和画册页都不会再出现它们；原片始终留在
 照片目录里，随时可以恢复。
 
-常用命令（盒子上用 /root/hide-photo.sh）：
-    bash /root/hide-photo.sh --list              列出各册已隐藏的照片
-    bash /root/hide-photo.sh P1085284.jpg        隐藏（自动定位册集）
-    bash /root/hide-photo.sh --show P1085284.jpg 恢复显示
-    bash /root/hide-photo.sh --no-rebuild ...    只改配置，暂不重新生成
+常用命令（盒子上用 /root/start_sh/hide-photo.sh）：
+    bash /root/start_sh/hide-photo.sh --list              列出各册已隐藏的照片
+    bash /root/start_sh/hide-photo.sh P1085284.jpg        隐藏（自动定位册集）
+    bash /root/start_sh/hide-photo.sh --show P1085284.jpg 恢复显示
+    bash /root/start_sh/hide-photo.sh --no-rebuild ...    只改配置，暂不重新生成
 """
 from __future__ import annotations
 
@@ -70,7 +70,7 @@ def cmd_list() -> None:
             print(f"  {d.name}  ·  没有隐藏照片")
         else:
             print(f"  {d.name}  ·  隐藏 {len(names)} 张：{'、'.join(names)}")
-    print(f"\n合计隐藏 {total} 张。恢复：bash /root/hide-photo.sh --show <文件名>")
+    print(f"\n合计隐藏 {total} 张。恢复：bash /root/start_sh/hide-photo.sh --show <文件名>")
 
 
 def cmd_hide(name: str, rebuild_now: bool) -> None:

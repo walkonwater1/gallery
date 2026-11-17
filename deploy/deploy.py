@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """水上行走画册一键部署：生成 → 精简 → 部署（防缓存）
 
-部署到盒子的 /root/digital_album/deploy.py，由 /root/update-album.sh 调用。
+部署到盒子的 /root/lixin/digital_album/deploy.py，由 /root/start_sh/update-album.sh 调用。
 """
 import re
 import sys
@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('/root/photograph')
-WORK = Path('/root/digital_album')
+WORK = Path('/root/lixin/digital_album')
 SITE = Path('/srv/digital_album')
 STAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
 MAIN = f'album_{STAMP}.html'

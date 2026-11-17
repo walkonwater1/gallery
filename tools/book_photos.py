@@ -26,7 +26,7 @@ CONFIG_NAME = "book.json"
 MANIFEST_NAME = "book-photos.json"
 DEFAULT_ALBUM = "泉州"
 SOURCE = Path(os.environ.get("ALBUM_SOURCE", "/root/photograph"))
-UPDATE = Path("/root/update-album.sh")
+UPDATE = Path("/root/start_sh/update-album.sh")
 
 IMAGE_EXTS = {
     ".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".bmp", ".gif",
@@ -149,7 +149,7 @@ def remove(name: str, reference: str | Path | None = None) -> str:
 
 def rebuild(enabled: bool) -> None:
     if not enabled:
-        print("已跳过重新生成；下次运行 bash /root/update-album.sh 后生效。")
+        print("已跳过重新生成；下次运行 bash /root/start_sh/update-album.sh 后生效。")
         return
     if not UPDATE.is_file():
         print(f"未找到 {UPDATE}，请手动重新生成画册。", file=sys.stderr)

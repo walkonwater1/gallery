@@ -339,7 +339,7 @@
       const link = photoLinks[currentIndex];
       const file = link && link.getAttribute("data-photo-file");
       if (!file) {
-        showHint("这张照片没有文件名信息，请运行一次 bash /root/update-album.sh 重新生成。");
+        showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
         return;
       }
       const action = bookFiles.has(file) ? "book-remove" : "book-add";
@@ -353,7 +353,7 @@
           showHint((data.message || "画册已更新") + "。继续浏览照片，可把喜欢的逐张加入画册。", 6000);
         })
         .catch(function () {
-          const command = "bash /root/book-photo.sh " +
+          const command = "bash /root/start_sh/book-photo.sh " +
             (action === "book-add" ? "--add " : "--remove ") + file;
           showHint("画册管理服务暂不可用。在盒子上执行：" + command);
           copyCommand(command).then(function (copied) {
@@ -369,7 +369,7 @@
     });
 
     function fallbackCover(file) {
-      const command = "bash /root/set-cover.sh " + file;
+      const command = "bash /root/start_sh/set-cover.sh " + file;
       const config = '{"cover": "' + file + '"}';
       const suffix =
         " — 在盒子上执行一次即可；也可以把 " + config +
@@ -386,7 +386,7 @@
       const link = photoLinks[currentIndex];
       const file = link && link.getAttribute("data-photo-file");
       if (!file) {
-        showHint("这张照片没有文件名信息，请运行一次 bash /root/update-album.sh 重新生成。");
+        showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
         return;
       }
       showHint("正在设置封面，请稍候…");
@@ -408,8 +408,8 @@
       hideLink(link);
       photoLinks.splice(currentIndex, 1);
 
-      const command = "bash /root/hide-photo.sh " + file;
-      const showCommand = "bash /root/hide-photo.sh --show " + file;
+      const command = "bash /root/start_sh/hide-photo.sh " + file;
+      const showCommand = "bash /root/start_sh/hide-photo.sh --show " + file;
       const text =
         "已在本机隐藏 " + file +
         "。要在所有设备、刷新后都不再显示，请执行：" + command +
@@ -476,7 +476,7 @@
       const link = photoLinks[currentIndex];
       const file = link && link.getAttribute("data-photo-file");
       if (!file) {
-        showHint("这张照片没有文件名信息，请运行一次 bash /root/update-album.sh 重新生成。");
+        showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
         return;
       }
       openHideConfirm(file, link);

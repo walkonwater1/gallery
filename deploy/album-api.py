@@ -2,7 +2,7 @@
 """水上行走画册本地管理接口。
 
 让网页上的「设为封面」「不显示这张」等操作点一下就生效：写 album.json，
-然后调用 /root/update-album.sh 重新生成。只监听 127.0.0.1，由 Nginx 反代。
+然后调用 /root/start_sh/update-album.sh 重新生成。只监听 127.0.0.1，由 Nginx 反代。
 
     POST /api/cover        {"file": "P1096445.jpg"}
     POST /api/clear-cover  {"album": "泉州"}
@@ -22,14 +22,14 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-sys.path.insert(0, "/root/digital_album/tools")
+sys.path.insert(0, "/root/lixin/digital_album/tools")
 import set_cover as cover  # noqa: E402
 import hide_photo as hide  # noqa: E402
 import book_photos  # noqa: E402
 
 HOST = "127.0.0.1"
 PORT = 8765
-UPDATE = "/root/update-album.sh"
+UPDATE = "/root/start_sh/update-album.sh"
 LOCK = threading.Lock()
 ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove"}
 
