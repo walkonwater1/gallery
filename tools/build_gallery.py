@@ -1082,7 +1082,6 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
         <div class="album-hero-top">
           <div class="shell album-hero-actions">
             <a class="back-link" href="gallery.html">返回相册</a>
-            <button class="print-link" type="button" data-print>打印 / 存为 PDF</button>
           </div>
         </div>
         <div class="album-hero-content">

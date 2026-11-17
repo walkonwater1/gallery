@@ -6645,3 +6645,32 @@ body.page-album .photo:not(.photo--full-bleed) figcaption .cap-loc {
 body.page-album .photo:not(.photo--full-bleed) figcaption .cap-time {
   color: #3a342b;
 }
+
+/* 图注在下边白框中更清晰，并上下居中 */
+body.page-album .photo:not(.photo--full-bleed) figcaption {
+  align-items: center;
+  padding: clamp(0.85rem, 1.4vw, 1.1rem) clamp(0.55rem, 0.9vw, 0.9rem);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #3f382f;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-no {
+  font-size: 0.7rem;
+  color: #7d5f2e;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-cam {
+  font-size: 0.8rem;
+  color: #4d463b;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-loc {
+  font-size: 0.68rem;
+  color: #5f574a;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-time {
+  font-size: 0.78rem;
+  color: #2f2a22;
+}
