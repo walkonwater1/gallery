@@ -6607,3 +6607,41 @@ body.page-album .photo--full-bleed .photo-link {
   padding: 0;
   box-shadow: none;
 }
+
+/* ---------- 册集内页：白框 + 下边框内嵌图注 ---------- */
+
+body.page-album .photo:not(.photo--full-bleed) {
+  background: #fbf8f1;
+  padding: clamp(4px, 0.5vw, 6px) clamp(4px, 0.5vw, 6px) 0;
+  box-shadow: 0 30px 70px -55px rgba(0, 0, 0, 0.85);
+}
+
+body.page-album .photo:not(.photo--full-bleed) .photo-link {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption {
+  margin-top: 0;
+  padding: clamp(0.65rem, 1.1vw, 0.9rem) clamp(0.45rem, 0.7vw, 0.7rem)
+    clamp(1.1rem, 1.8vw, 1.7rem);
+  border-top-color: rgba(32, 28, 22, 0.1);
+  color: #5f594e;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-no {
+  color: #8a6a37;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-cam {
+  color: #655e52;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-loc {
+  color: #6f6758;
+}
+
+body.page-album .photo:not(.photo--full-bleed) figcaption .cap-time {
+  color: #3a342b;
+}
