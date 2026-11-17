@@ -2,7 +2,7 @@
 
 `build_gallery.py` 会扫描一个照片目录，自动生成：
 
-- `gallery.html`：照片库目录
+- `gallery.html`：相册目录
 - `gallery-<slug>.html`：每册一个页面
 - `assets/generated/<slug>/`：压缩后的网页图片
 

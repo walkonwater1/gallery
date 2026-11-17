@@ -23,7 +23,7 @@ def nav_html(active: str) -> str:
     book = ' aria-current="page"' if active == 'book' else ''
     return (
         '<nav class="site-nav" id="site-nav" aria-label="主导航">'
-        f'<a href="index.html"{gallery}>照片库 <span>Archive</span></a>'
+        f'<a href="index.html"{gallery}>相册 <span>Archive</span></a>'
         f'<a href="{BOOK_URL}"{book}>画册 <span>Photo Book</span></a>'
         '</nav>'
     )
@@ -32,7 +32,7 @@ def nav_html(active: str) -> str:
 def foot_nav_html() -> str:
     return (
         '<nav class="footer-nav" aria-label="页脚导航">'
-        '<a href="index.html">照片库</a>'
+        '<a href="index.html">相册</a>'
         f'<a href="{BOOK_URL}">画册</a>'
         '</nav>'
     )

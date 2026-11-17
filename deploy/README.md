@@ -187,7 +187,7 @@ sudo bash deploy/install-h618.sh
 
 脚本是幂等的，可以反复运行。它会用新文件覆盖 `/srv/digital_album`，并保留 Nginx 配置。
 
-如果使用 `tools/build_gallery.py` 生成照片库，`gallery.html` 和
+如果使用 `tools/build_gallery.py` 生成相册，`gallery.html` 和
 `assets/generated/` 会一起部署；`tools/`、`photos/`、`.gallery-cache/` 和
 `gallery.config*.json` 会被排除，不会进入网站目录。
 

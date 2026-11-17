@@ -20,7 +20,7 @@
 
 生成：
 
-    gallery.html               # 照片库目录
+    gallery.html               # 相册目录
     gallery-<slug>.html        # 每册一个页面
     assets/generated/<slug>/   # 自动压缩后的图片
 
@@ -890,7 +890,7 @@ def header_html(active: str, overlay: bool = False) -> str:
       <nav class="site-nav" id="site-nav" aria-label="主导航">
         {nav("index.html", "首页", "Home")}
         {nav("albums.html", "册集", "Albums")}
-        {nav("gallery.html", "照片库", "Archive")}
+        {nav("gallery.html", "相册", "Archive")}
         {nav("about.html", "关于", "About")}
       </nav>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
@@ -1029,7 +1029,7 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
         if next_album
         else f"""          <a class="next-album" href="gallery.html">
             <span class="next-label"><span>返回 / Back</span><span>{total:02d} / {total:02d}</span></span>
-            <h2>照片库</h2>
+            <h2>相册</h2>
             <span class="next-arrow">返回目录 →</span>
           </a>"""
     )
@@ -1071,7 +1071,7 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
              width="{cover["w"]}" height="{cover["h"]}">
         <div class="album-hero-top">
           <div class="shell album-hero-actions">
-            <a class="back-link" href="gallery.html">返回照片库</a>
+            <a class="back-link" href="gallery.html">返回相册</a>
             <button class="print-link" type="button" data-print>打印 / 存为 PDF</button>
           </div>
         </div>
@@ -1162,8 +1162,8 @@ def gallery_html(albums: list[Album], depth: int) -> str:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#141310">
-  <title>照片库 · 水上行走</title>
-  <meta name="description" content="照片库。">
+  <title>相册 · 水上行走</title>
+  <meta name="description" content="相册。">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add("js");</script>
   <link rel="stylesheet" href="css/style.css">
@@ -1177,10 +1177,10 @@ def gallery_html(albums: list[Album], depth: int) -> str:
     <section class="page-intro shell">
       <div class="page-intro-head">
         <div class="reveal">
-          <h1>照片库<small>The Archive</small></h1>
+          <h1>相册<small>The Archive</small></h1>
         </div>
         <aside class="page-intro-aside reveal reveal-delay-1">
-          <div class="page-stats" aria-label="照片库数据">
+          <div class="page-stats" aria-label="相册数据">
             <div><strong>{len(albums):02d}</strong><span>自动册集</span></div>
             <div><strong>{total_photos}</strong><span>收录影像</span></div>
             <div><strong>{e(year_label)}</strong><span>最近年份</span></div>
@@ -1216,7 +1216,7 @@ BOOK_TEMPLATE = r"""<!DOCTYPE html>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-book">
-  <a class="book-back" href="index.html" aria-label="返回照片库">
+  <a class="book-back" href="index.html" aria-label="返回相册">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
   </a>
 
@@ -1874,7 +1874,7 @@ def main() -> None:
         if args.dry_run:
             print("没有找到包含照片的册集文件夹")
             return
-        print("没有找到包含照片的册集文件夹，生成空白照片库。")
+        print("没有找到包含照片的册集文件夹，生成空白相册。")
         write_if_changed(output / "gallery.html", gallery_html([], depth))
         write_if_changed(
             output / "book.html",
@@ -1921,7 +1921,7 @@ def main() -> None:
     }
 
     if not albums:
-        print("所有文件夹都没有可用照片，生成空白照片库。")
+        print("所有文件夹都没有可用照片，生成空白相册。")
         write_if_changed(output / "gallery.html", gallery_html([], depth))
         write_if_changed(output / "book.html", book_html([], book_meta))
         book_photos.write_manifest(output, book_config["album"], [])
