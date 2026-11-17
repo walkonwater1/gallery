@@ -1122,9 +1122,10 @@ def gallery_html(albums: list[Album], depth: int) -> str:
     items = []
     for index, album in enumerate(albums, start=1):
         cover = album.cover.default
+        orientation = "is-portrait" if cover["h"] > cover["w"] else "is-landscape"
         subtitle_html = f'<p class="album-en">{e(album.subtitle)}</p>' if album.subtitle else ""
-        items.append(f"""        <article class="archive-item reveal">
-          <a class="archive-visual" href="{e(album.page_name)}" aria-label="翻阅《{e(album.title)}》">
+        items.append(f"""        <article class="archive-item {orientation} reveal">
+          <a class="archive-visual" href="{e(album.page_name)}" aria-label="翻阅《{e(album.title)}》" style="--cover-ratio: {cover["w"]} / {cover["h"]}">
             <span class="visual-index">{index:02d}</span>
             <img src="{e(cover["path"])}" alt="{e(album.title)}封面"
                  width="{cover["w"]}" height="{cover["h"]}" loading="lazy">

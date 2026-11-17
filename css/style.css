@@ -4293,3 +4293,355 @@ body.page-archive .archive-meta {
   body.page-archive .archive-meta { gap: 3px 8px; font-size: 0.54rem; }
 }
 
+/* ===== 高级感色调 · 中性纸色 / 深墨 / 极少量黄铜 ===== */
+:root {
+  --gallery-bg: #f4f3ef;
+  --card-bg: #ffffff;
+  --book-bg: #e6e4de;
+  --cloth: #22261f;
+  --cloth-ink: #ece9e0;
+  --ink: #1c1e1b;
+  --ink-soft: #353832;
+  --muted: #74766e;
+  --muted-light: #a3a49c;
+  --line: rgba(28, 30, 27, 0.12);
+  --line-light: rgba(28, 30, 27, 0.07);
+  --accent: #8a7450;
+  --white: #fbfaf6;
+}
+
+/* 页面底色：极浅暖灰，仍是无渐变、无图片、无发光的纯净背景 */
+body.page-archive,
+body.page-album {
+  background: var(--gallery-bg);
+}
+
+body.page-archive .site-header {
+  background: rgba(244, 243, 239, 0.9);
+  border-bottom-color: var(--line-light);
+}
+
+body.page-archive .page-stats {
+  border-top-color: var(--accent);
+}
+
+body.page-archive .page-stats span { color: var(--muted); }
+
+/* 卡片：纯白装裱 + 发丝边框，hover 只换边框色 */
+body.page-archive .archive-item {
+  background: var(--card-bg);
+  border: 1px solid var(--line-light);
+  padding-bottom: clamp(0.9rem, 1.6vw, 1.25rem);
+  transition: border-color 0.35s ease;
+}
+
+body.page-archive .archive-item:hover {
+  border-color: rgba(138, 116, 80, 0.55);
+}
+
+body.page-archive .archive-visual { background: var(--card-bg); }
+
+body.page-archive .archive-copy {
+  margin-top: 0;
+  padding: clamp(0.9rem, 1.6vw, 1.25rem) clamp(0.9rem, 1.6vw, 1.25rem) 0;
+}
+
+body.page-archive .archive-no { color: var(--accent); }
+
+body.page-archive .archive-meta { color: var(--muted); }
+
+/* 图片占位统一为极淡纸色 */
+.photo-link,
+.photo-link img,
+.archive-visual img {
+  background: #f7f7f4;
+}
+
+/* 册集页：深墨遮罩与页面底色同调 */
+body.page-album .site-header[data-header="overlay"] {
+  background: rgba(24, 28, 23, 0.58);
+}
+
+body.page-album .album-hero::after {
+  background: rgba(20, 24, 20, 0.5);
+}
+
+/* 画册外部：略深的中性灰托住白色书页 */
+.page-book,
+.cover-view {
+  background: var(--book-bg);
+}
+
+/* 闭合封面：深色布面精装书壳 */
+.cover-book {
+  background: var(--cloth);
+  color: var(--cloth-ink);
+  box-shadow: 0 20px 48px rgba(20, 24, 20, 0.18);
+}
+
+.cover-book-spine {
+  border-right-color: rgba(0, 0, 0, 0.18);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.06) 58%, rgba(255, 255, 255, 0));
+}
+
+.cover-book-edge {
+  background: repeating-linear-gradient(90deg, #d8d5cc 0 1px, #f4f2ec 1px 3px);
+}
+
+.cover-book-kicker,
+.cover-book-author,
+.cover-book-year {
+  color: rgba(236, 233, 224, 0.62);
+}
+
+.cover-hint { color: var(--muted); }
+
+/* 阅读界面与目录：同色系、极小面积点缀 */
+.book-mini { color: var(--muted); }
+.book-chapter { color: var(--muted); }
+.book-page-label { color: var(--ink); }
+
+.book-toc {
+  background: var(--gallery-bg);
+}
+
+.book-toc-group-title { color: var(--muted); }
+.book-toc-grid-row button { background: var(--card-bg); }
+.book-toc-grid button:hover { background: rgba(138, 116, 80, 0.08); }
+.book-chapter-no { color: var(--ink); }
+.book-chapter-name { color: var(--muted); }
+
+/* ===== 暗色系 · 深石板灰（不用纯黑） ===== */
+:root {
+  --gallery-bg: #22252a;
+  --card-bg: #2b2f34;
+  --book-bg: #1c1f23;
+  --cloth: #363a34;
+  --cloth-ink: #ece9e0;
+  --ink: #ecebe5;
+  --ink-soft: #c7c8c1;
+  --muted: #a0a29b;
+  --muted-light: #7a7c75;
+  --line: rgba(236, 235, 229, 0.16);
+  --line-light: rgba(236, 235, 229, 0.09);
+  --accent: #b39a6b;
+  --white: #f2f1eb;
+  --paper: #22252a;
+  --paper-deep: #2b2f34;
+  --paper-soft: #262a2e;
+  --dark: #1c1f23;
+}
+
+body { background: var(--gallery-bg); }
+
+body.page-archive,
+body.page-album {
+  background: var(--gallery-bg);
+}
+
+/* 顶部导航：同色半透明，不发白 */
+body.page-archive .site-header,
+body.page-archive .site-header.is-scrolled,
+.site-header[data-header="paper"] {
+  background: rgba(34, 37, 42, 0.92);
+  border-bottom-color: var(--line-light);
+}
+
+body.page-album .site-header[data-header="overlay"] {
+  background: rgba(28, 31, 35, 0.62);
+}
+
+/* 缩略卡片：稍浅的深灰，发丝边框，照片是画面里唯一的亮部 */
+body.page-archive .archive-item:hover {
+  border-color: rgba(179, 154, 107, 0.6);
+}
+
+body.page-archive .archive-visual img,
+body.page-album .photo-link,
+body.page-album .photo-link img {
+  background: var(--card-bg);
+}
+
+/* 画册外部更暗，白色书页与深色布面书壳都从背景里浮出来 */
+.page-book,
+.cover-view {
+  background: var(--book-bg);
+}
+
+.cover-book {
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.28);
+  outline: 1px solid rgba(236, 235, 229, 0.1);
+}
+
+.book-back {
+  background: rgba(236, 235, 229, 0.1);
+  color: var(--ink-soft);
+}
+
+.book-back:hover {
+  background: rgba(236, 235, 229, 0.18);
+  color: var(--ink);
+}
+
+.book {
+  border-color: rgba(236, 235, 229, 0.12);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
+}
+
+.book-mini,
+.book-chapter { color: var(--ink-soft); }
+.book-mini:hover { color: var(--ink); }
+.cover-hint { color: var(--ink-soft); }
+
+.book-flip { color: var(--muted); }
+.book-flip:hover:not(:disabled) { color: var(--ink); }
+.book-flip:disabled { opacity: 0.25; }
+
+.book::after {
+  background: repeating-linear-gradient(90deg, #4a4d47 0 1px, #d8d5cc 1px 3px);
+}
+
+/* 跨页大图只在四周留白，中缝保持贴合，不让书脊把画面切成两半 */
+.book-page--spread.book-page--left {
+  padding: clamp(1rem, 2.2vw, 2rem) 0 clamp(1rem, 2.2vw, 2rem) clamp(1rem, 2.2vw, 2rem);
+}
+
+.book-page--spread.book-page--right {
+  padding: clamp(1rem, 2.2vw, 2rem) clamp(1rem, 2.2vw, 2rem) clamp(1rem, 2.2vw, 2rem) 0;
+}
+
+/* 白色书页上的文字保持深墨，避免继承暖白后看不清 */
+.book-chapter-no { color: #1c1e1b; }
+.book-chapter-name { color: #6f716b; }
+.book-page-cap { color: #6f716b; }
+
+/* 目录：暗底 + 稍浅按钮 */
+.book-toc-grid button { color: var(--ink); }
+.book-toc-grid button:hover { background: rgba(179, 154, 107, 0.14); }
+.book-toc-close { color: var(--ink); }
+.book-toc-title { color: var(--ink); }
+.book-toc-kicker { color: var(--muted); }
+
+/* ===== 照片库 · 竖幅封面适配（选项尺寸不变） ===== */
+body.page-archive .archive .shell {
+  align-items: stretch;
+}
+
+/* 横幅卡片保持原有尺寸，只略收紧文字区 */
+body.page-archive .archive-item.is-landscape {
+  padding-bottom: clamp(0.6rem, 1.2vw, 0.9rem);
+}
+
+body.page-archive .archive-item.is-landscape .archive-copy {
+  padding-top: clamp(0.6rem, 1.2vw, 0.9rem);
+}
+
+/* 竖幅封面：同样占一个网格单元，图片铺满卡片高度、宽度按原始比例自适应 */
+body.page-archive .archive-item.is-portrait {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: clamp(240px, 21vw, 280px);
+  padding: 0;
+}
+
+body.page-archive .archive-item.is-portrait .archive-visual {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: block;
+  width: auto;
+  aspect-ratio: var(--cover-ratio, 2 / 3);
+  background: var(--card-bg);
+}
+
+body.page-archive .archive-item.is-portrait .archive-visual img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: var(--card-bg);
+}
+
+body.page-archive .archive-item.is-portrait .archive-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  padding: clamp(0.7rem, 1.2vw, 1rem);
+  border-left: 1px solid var(--line-light);
+}
+
+body.page-archive .archive-item.is-portrait .archive-no {
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.45rem;
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+}
+
+body.page-archive .archive-item.is-portrait .archive-copy h2 {
+  font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+  line-height: 1.3;
+}
+
+body.page-archive .archive-item.is-portrait .archive-copy .album-en {
+  font-size: 0.72rem;
+}
+
+body.page-archive .archive-item.is-portrait .archive-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.6rem;
+  font-size: 0.54rem;
+  letter-spacing: 0.04em;
+}
+
+/* 手机上同样保持一个网格单元，内部改为图上 + 文字下 */
+@media (max-width: 760px) {
+  body.page-archive .archive-item.is-portrait {
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(210px, 58vw, 260px);
+    padding-bottom: clamp(0.6rem, 1.2vw, 0.9rem);
+  }
+
+  body.page-archive .archive-item.is-portrait .archive-visual {
+    flex: 1;
+    width: 100%;
+    aspect-ratio: auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  body.page-archive .archive-item.is-portrait .archive-visual img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  body.page-archive .archive-item.is-portrait .archive-copy {
+    flex: 0 0 auto;
+    padding: clamp(0.6rem, 1.2vw, 0.9rem) clamp(0.6rem, 1.2vw, 0.9rem) 0;
+    border-left: 0;
+  }
+
+  body.page-archive .archive-item.is-portrait .archive-copy h2 {
+    font-size: 1.05rem;
+  }
+
+  body.page-archive .archive-item.is-portrait .archive-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px 8px;
+    margin-top: 0.5rem;
+  }
+}
+
