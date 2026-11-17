@@ -6592,3 +6592,18 @@ body.page-album .scroll-note {
 .album-facts--hero dd {
   color: rgba(247, 242, 230, 0.95);
 }
+
+/* ---------- 册集内页：照片外圈窄白框 ---------- */
+
+body.page-album .photo-link {
+  background: #fbf8f1;
+  padding: clamp(3px, 0.45vw, 6px);
+  box-shadow: 0 30px 70px -55px rgba(0, 0, 0, 0.85);
+}
+
+/* 通栏大图仍然贴边，不套白框 */
+body.page-album .photo--full-bleed .photo-link {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
