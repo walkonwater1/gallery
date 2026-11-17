@@ -6305,3 +6305,76 @@ body.page-archive.page-gallery .archive-item.is-portrait .archive-meta {
   }
 }
 
+
+/* ---------- 照片库卡片：浅色半透明卡纸（适配回退版排版） ---------- */
+
+body.page-archive.page-gallery .archive-item,
+body.page-archive.page-gallery .archive-item.is-portrait,
+body.page-archive.page-gallery .archive-item.is-landscape,
+body.page-archive.page-gallery .archive-item:last-child {
+  background: rgba(251, 249, 244, 0.93);
+  border: 1px solid rgba(32, 28, 22, 0.12);
+  box-shadow: none;
+}
+
+body.page-archive.page-gallery .archive-item:hover,
+body.page-archive.page-gallery .archive-item.is-portrait:hover,
+body.page-archive.page-gallery .archive-item.is-landscape:hover {
+  border-color: rgba(138, 106, 55, 0.5);
+  box-shadow: none;
+}
+
+body.page-archive.page-gallery .archive-visual,
+body.page-archive.page-gallery .archive-item.is-portrait .archive-visual,
+body.page-archive.page-gallery .archive-item.is-landscape .archive-visual {
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+}
+
+body.page-archive.page-gallery .archive-visual img,
+body.page-archive.page-gallery .archive-item.is-portrait .archive-visual img,
+body.page-archive.page-gallery .archive-item.is-landscape .archive-visual img {
+  background-color: transparent;
+}
+
+body.page-archive.page-gallery .archive-item.is-portrait .archive-copy {
+  border-left-color: rgba(32, 28, 22, 0.12);
+}
+
+body.page-archive.page-gallery .archive-no {
+  color: #8a6a37;
+}
+
+body.page-archive.page-gallery .archive-copy h2,
+body.page-archive.page-gallery .archive-item.is-portrait .archive-copy h2 {
+  color: #201c16;
+}
+
+body.page-archive.page-gallery .archive-copy .album-en,
+body.page-archive.page-gallery .archive-item.is-portrait .archive-copy .album-en {
+  color: #6d6557;
+}
+
+body.page-archive.page-gallery .archive-meta,
+body.page-archive.page-gallery .archive-item.is-portrait .archive-meta {
+  color: #746c5e;
+}
+
+
+/* ---------- 页头更实，水上行走标识更清晰 ---------- */
+
+.site-header,
+body.page-archive .site-header {
+  background: rgba(20, 19, 16, 0.9);
+}
+
+.site-header.is-scrolled,
+body.page-archive .site-header.is-scrolled {
+  background: rgba(12, 11, 9, 0.97);
+}
+
+.brand-en {
+  color: var(--ink-soft);
+  opacity: 1;
+}
