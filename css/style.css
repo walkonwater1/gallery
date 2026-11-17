@@ -6415,3 +6415,55 @@ body.page-archive.page-gallery .page-stats span {
 body.page-archive.page-gallery .archive {
   padding-top: clamp(1.8rem, 3vw, 2.8rem);
 }
+
+/* ---------- 照片库：数据展示收成一行小字 ---------- */
+
+body.page-archive.page-gallery .page-intro {
+  padding-top: clamp(2.4rem, 4.5vw, 3.6rem);
+  padding-bottom: clamp(1.2rem, 2.2vw, 1.9rem);
+}
+
+body.page-archive.page-gallery .page-intro-aside {
+  padding-bottom: 0;
+}
+
+body.page-archive.page-gallery .page-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.9rem;
+  margin-top: 0;
+  border-top: 0;
+}
+
+body.page-archive.page-gallery .page-stats div {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0 0.9rem 0 0;
+  border-right: 1px solid var(--line-light);
+}
+
+body.page-archive.page-gallery .page-stats div:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+body.page-archive.page-gallery .page-stats strong {
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  line-height: 1;
+  color: var(--ink);
+}
+
+body.page-archive.page-gallery .page-stats span {
+  margin-top: 0;
+  font-size: 0.55rem;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  color: var(--muted-light);
+  white-space: nowrap;
+}
+
+body.page-archive.page-gallery .archive {
+  padding-top: clamp(1.2rem, 2vw, 2rem);
+}
