@@ -6477,3 +6477,10 @@ body.page-archive.page-gallery .page-intro h1 {
 body.page-archive.page-gallery .page-intro h1 small {
   font-size: max(0.58rem, 0.11em);
 }
+
+/* 跨页大图：取消页内留白，图片在书脊处直接衔接 */
+.book-page--spread,
+.book-page--spread.book-page--left,
+.book-page--spread.book-page--right {
+  padding: 0 !important;
+}

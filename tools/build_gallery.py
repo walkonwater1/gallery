@@ -1736,14 +1736,18 @@ def book_html(photos: list[Photo], meta: dict[str, str] | None = None) -> str:
     year = meta.get("year") or str(datetime.now().year)
 
     data = []
+    supported = {".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"}
     for photo in photos:
         view = photo.default
+        original = "originals/" + _urlquote(str(photo.rel_source))
+        # 画册优先直接使用原图；浏览器无法直接显示的格式才退回生成图。
+        src = original if Path(photo.rel_source).suffix.lower() in supported else view["path"]
         data.append(
             {
-                "src": view["path"],
+                "src": src,
                 "w": view["w"],
                 "h": view["h"],
-                "href": "originals/" + _urlquote(str(photo.rel_source)),
+                "href": original,
                 "caption": photo.caption,
                 "location": photo.location,
                 "file": Path(photo.rel_source).name,
