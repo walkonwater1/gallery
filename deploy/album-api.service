@@ -1,0 +1,16 @@
+[Unit]
+Description=Shiguang album admin API
+After=network.target nginx.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/digital_album
+ExecStart=/usr/bin/python3 /root/digital_album/album-api.py
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

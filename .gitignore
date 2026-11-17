@@ -16,3 +16,7 @@ __pycache__/
 Thumbs.db
 *.swp
 *~
+*.bak*
+
+# 遗留的未引用脚本
+js/album-viewer.js

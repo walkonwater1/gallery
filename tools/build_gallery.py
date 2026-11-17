@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-拾光画册 · NAS 照片自动排版
+水上行走 · NAS 照片自动排版
 
 把一个照片目录扫描成静态画册页面：
 
@@ -61,6 +61,9 @@ Image.MAX_IMAGE_PIXELS = None
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT = ROOT
 DEFAULT_CACHE = ROOT / ".gallery-cache" / "manifest.json"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import book_photos  # noqa: E402
 
 IMAGE_EXTS = {
     ".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".bmp",
@@ -624,6 +627,14 @@ def build_photo_caption(photo: Photo, location: str, configured: str) -> str:
     parts = [photo.date_label]
     if photo.camera:
         parts.append(photo.camera)
+    parts.extend(
+        [
+            photo.aperture,
+            photo.exposure,
+            photo.iso,
+            photo.focal,
+        ]
+    )
     return " · ".join(p for p in parts if p) or "影像"
 
 
@@ -668,6 +679,16 @@ def build_chapter(
         ]
     else:
         images = list(iter_images(chapter_dir))
+
+    raw_hidden = album_config.get("hidden_photos") or []
+    if isinstance(raw_hidden, str):
+        raw_hidden = [raw_hidden]
+    hidden_names = (
+        {Path(str(name)).name for name in raw_hidden}
+        if isinstance(raw_hidden, (list, tuple))
+        else set()
+    )
+    images = [p for p in images if p.name not in hidden_names]
 
     output_dir = photo_output_dir(output_root, album_slug)
     photos: list[Photo] = []
@@ -826,7 +847,7 @@ def build_album(
 
     signature = str(config.get("signature") or "").strip()
     if not signature:
-        signature = f"拾光 · 自动整理于 {datetime.now():%Y 年 %m 月}"
+        signature = f"水上行走 · 自动整理于 {datetime.now():%Y 年 %m 月}"
 
     description = str(config.get("description") or "").strip()
     if not description:
@@ -862,9 +883,9 @@ def header_html(active: str, overlay: bool = False) -> str:
     header_kind = "overlay" if overlay else "paper"
     return f"""  <header class="site-header" data-header="{header_kind}">
     <div class="shell header-inner">
-      <a class="brand" href="index.html" aria-label="拾光画册首页">
-        <span class="brand-cn">拾光</span>
-        <span class="brand-en">SHIGUANG</span>
+      <a class="brand" href="index.html" aria-label="水上行走首页">
+        <span class="brand-cn">水上行走</span>
+        <span class="brand-en">WALK ON WATER</span>
       </a>
       <nav class="site-nav" id="site-nav" aria-label="主导航">
         {nav("index.html", "首页", "Home")}
@@ -878,35 +899,6 @@ def header_html(active: str, overlay: bool = False) -> str:
       </button>
     </div>
   </header>"""
-
-
-def footer_html() -> str:
-    return """  <footer class="site-footer">
-    <div class="shell footer-top">
-      <div>
-        <p class="footer-kicker">STAY IN THE LIGHT</p>
-        <p class="footer-title">把日子过成<br>值得翻页的样子。</p>
-      </div>
-      <div class="footer-side">
-        <nav class="footer-nav" aria-label="页脚导航">
-          <a href="albums.html">全部册集</a>
-          <a href="gallery.html">照片库</a>
-          <a href="album-shanhai.html">山海之间</a>
-          <a href="album-city.html">城市切片</a>
-          <a href="album-daily.html">日常的光</a>
-          <a href="album-snow.html">雪线以北</a>
-          <a href="about.html">关于画册</a>
-          <a href="mailto:hello@shiguang.example">联系我们</a>
-        </nav>
-        <a class="footer-mail" href="mailto:hello@shiguang.example">hello@shiguang.example</a>
-      </div>
-    </div>
-    <div class="shell footer-bottom">
-      <span>© 2026 拾光画册 · SHIGUANG</span>
-      <span>电子画册 · Vol. 01</span>
-      <a href="#top">回到顶部 ↑</a>
-    </div>
-  </footer>"""
 
 
 def srcset_for(photo: Photo) -> str:
@@ -936,12 +928,16 @@ def figure_html(photo: Photo, number: int, css_class: str = "photo", in_grid: bo
     else:
         alt = photo.caption or photo.location
     location_attr = f' data-location="{e(photo.location)}"' if photo.location else ""
-    loading = "lazy"
+    loading = "eager"
     sizes = "50vw" if in_grid else sizes_for(css_class)
+    from urllib.parse import quote as _urlquote
+    original_href = "originals/" + _urlquote(str(photo.rel_source))
+    photo_file = Path(photo.rel_source).name
 
     return f"""          <figure class="{e(css_class)}">
-            <a class="photo-link" href="{e(photo.large["path"])}"
-               data-caption="{e(photo.caption)}"{location_attr}>
+            <a class="photo-link" href="{e(original_href)}"
+               data-caption="{e(photo.caption)}"{location_attr}
+               data-photo-file="{e(photo_file)}">
               <img src="{e(default["path"])}"
                    srcset="{e(srcset_for(photo))}"
                    sizes="{e(sizes)}"
@@ -1011,24 +1007,13 @@ def chapter_html(chapter: Chapter, index: int, is_last: bool, start_number: int)
     last_class = " chapter--last" if is_last else ""
     en_label = chapter.en or "Photographs"
     en_small = f"<small>{e(chapter.en)}</small>" if chapter.en else ""
-    intro = f"\n          <p>{e(chapter.intro)}</p>" if chapter.intro else ""
-    quote = ""
-    if chapter.quote:
-        cite = f"<cite>{e(chapter.quote_cite)}</cite>" if chapter.quote_cite else ""
-        quote = f"""
-        <blockquote class="pull-quote">
-          “{e(chapter.quote)}”
-          {cite}
-        </blockquote>"""
-
-    return f"""      <section class="chapter shell reveal{last_class}" aria-labelledby="{chapter_id}">
+    return f"""      <section class="chapter shell{last_class}" aria-labelledby="{chapter_id}">
         <div class="chapter-head">
           <p class="chapter-no">Chapter {index:02d}<span>{e(en_label)}</span></p>
-          <h2 id="{chapter_id}">{e(chapter.title)}{en_small}</h2>{intro}
+          <h2 id="{chapter_id}">{e(chapter.title)}{en_small}</h2>
         </div>
 
 {photos_html(chapter.photos, start_number)}
-{quote}
       </section>"""
 
 
@@ -1042,20 +1027,14 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
             <span class="next-arrow">继续翻阅 →</span>
           </a>"""
         if next_album
-        else """          <a class="next-album" href="gallery.html">
-            <span class="next-label"><span>返回 / Back</span><span>Archive</span></span>
+        else f"""          <a class="next-album" href="gallery.html">
+            <span class="next-label"><span>返回 / Back</span><span>{total:02d} / {total:02d}</span></span>
             <h2>照片库</h2>
-            <p>所有自动整理的册集</p>
             <span class="next-arrow">返回目录 →</span>
           </a>"""
     )
 
-    end_quote = str(album.config.get("end_quote") or "").strip()
-    if not end_quote:
-        end_quote = "照片会记得我们走过的地方，<span><br>也会记得当时的光。</span>"
-
     meta_location = album.location or album.title
-    lead = str(album.config.get("lead") or "").strip() or f"{album.count} 个片刻，按时间排列。"
     subtitle_html = f'<p class="album-en">{e(album.subtitle)}</p>' if album.subtitle else ""
     chapter_blocks = []
     photo_number = 1
@@ -1071,7 +1050,7 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{e(album.title)} · 拾光画册</title>
+  <title>{e(album.title)} · 水上行走</title>
   <meta name="description" content="{e(album.description)}">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add("js");</script>
@@ -1107,10 +1086,9 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
             </div>
           </div>
         </div>
-        <p class="scroll-note" aria-hidden="true">向下翻阅 · SCROLL TO UNFOLD</p>
       </header>
 
-      <section class="album-opening shell reveal" aria-labelledby="prologue-title">
+      <section class="album-opening shell">
         <dl class="album-facts">
           <div><dt>年份</dt><dd>{e(album.year or "—")}</dd></div>
           <div><dt>地点</dt><dd>{e(album.location or "—")}</dd></div>
@@ -1118,31 +1096,18 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
           <div><dt>页数</dt><dd>{album.pages} 页</dd></div>
           <div><dt>介质</dt><dd>数码 · 自动整理</dd></div>
         </dl>
-        <div class="album-intro">
-          <span class="kicker">卷首语 / Prologue</span>
-          <h2 class="lead" id="prologue-title">{e(lead)}</h2>
-          <p>{e(album.prologue)}</p>
-          <p class="album-signature">{e(album.signature)}</p>
-        </div>
       </section>
 
 {chapters}
 
       <section class="album-end">
-        <div class="shell album-end-inner reveal">
-          <div>
-            <p class="kicker">End Note · {index:02d} / {total:02d}</p>
-            <blockquote>
-              {end_quote}
-            </blockquote>
-          </div>
+        <div class="shell album-end-inner">
 {next_link}
         </div>
       </section>
     </article>
   </main>
 
-{footer_html()}
 
   <script src="js/main.js"></script>
 </body>
@@ -1154,12 +1119,6 @@ def gallery_html(albums: list[Album], depth: int) -> str:
     total_photos = sum(a.count for a in albums)
     years = sorted({a.year for a in albums if a.year})
     year_label = years[-1] if years else "—"
-    depth_text = {
-        0: "照片目录本身是一册",
-        1: "每个顶层文件夹是一册",
-        2: "每个第二层文件夹是一册",
-        3: "每个第三层文件夹是一册",
-    }.get(depth, f"每个第 {depth} 层文件夹是一册")
     items = []
     for index, album in enumerate(albums, start=1):
         cover = album.cover.default
@@ -1174,28 +1133,24 @@ def gallery_html(albums: list[Album], depth: int) -> str:
             <span class="archive-no">Auto Album · {e(album.year or album.date_range)}</span>
             <h2>{e(album.title)}</h2>
             {subtitle_html}
-            <p>{e(album.description)}</p>
             <div class="archive-meta">
               <span>{e(album.location or "—")}</span>
               <span>{album.count} 幅影像</span>
               <span>{album.pages} 页</span>
             </div>
-            <span class="archive-link">翻阅这一册</span>
           </div>
         </article>""")
 
     if not items:
-        items.append("""        <div class="archive-end reveal">
-          <p><span class="pulse-dot" aria-hidden="true"></span>还没有可生成的册集。把照片放进 NAS 文件夹，再运行一次脚本。</p>
-        </div>""")
+        items.append('        <div class="archive-end reveal"></div>')
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>照片库 · 拾光画册</title>
-  <meta name="description" content="由 NAS 文件夹自动整理的照片库，按册集与章节排列。">
+  <title>照片库 · 水上行走</title>
+  <meta name="description" content="照片库。">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add("js");</script>
   <link rel="stylesheet" href="css/style.css">
@@ -1209,14 +1164,9 @@ def gallery_html(albums: list[Album], depth: int) -> str:
     <section class="page-intro shell">
       <div class="page-intro-head">
         <div class="reveal">
-          <p class="eyebrow">Auto Archive · NAS</p>
           <h1>照片库<small>The Archive</small></h1>
         </div>
         <aside class="page-intro-aside reveal reveal-delay-1">
-          <p>
-            这里没有手工选片。{e(depth_text)}，子文件夹是一章；
-            照片按 EXIF 拍摄时间排序，自动生成封面、图注与缩略图。
-          </p>
           <div class="page-stats" aria-label="照片库数据">
             <div><strong>{len(albums):02d}</strong><span>自动册集</span></div>
             <div><strong>{total_photos}</strong><span>收录影像</span></div>
@@ -1226,24 +1176,580 @@ def gallery_html(albums: list[Album], depth: int) -> str:
       </div>
     </section>
 
-    <section class="archive" aria-label="自动册集列表">
+    <section class="archive" aria-label="册集">
       <div class="shell">
 {chr(10).join(items)}
-
-        <div class="archive-end reveal">
-          <p><span class="pulse-dot" aria-hidden="true"></span>此页由 NAS 文件夹自动生成 · 增删照片后重新运行脚本即可</p>
-          <a class="text-link" href="albums.html">返回手工册集</a>
-        </div>
       </div>
     </section>
   </main>
 
-{footer_html()}
 
   <script src="js/main.js"></script>
 </body>
 </html>
 """
+
+
+BOOK_TEMPLATE = r"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>__BOOK_TITLE__ · 水上行走</title>
+  <meta name="description" content="可在线翻阅的摄影画册。">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-book">
+  <a class="book-back" href="index.html" aria-label="返回照片库">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
+  </a>
+
+  <section class="cover-view" id="cover-view" aria-label="画册封面">
+    <button class="cover-book" id="cover-enter" type="button" aria-label="打开画册">
+      <span class="cover-book-spine" aria-hidden="true"></span>
+      <span class="cover-book-face">
+        <span class="cover-book-kicker">Photography Book</span>
+        <span class="cover-book-title">__BOOK_TITLE__</span>
+        <span class="cover-book-author">摄影　__BOOK_AUTHOR__</span>
+        <span class="cover-book-year">__BOOK_YEAR__</span>
+      </span>
+      <span class="cover-book-edge" aria-hidden="true"></span>
+    </button>
+    <span class="cover-hint">点击打开</span>
+  </section>
+
+  <main class="book-stage" id="book-stage" hidden>
+    <div class="book-bar">
+      <button class="book-mini" id="book-cover" type="button">封面</button>
+      <button class="book-mini" id="book-toc" type="button">目录</button>
+      <span class="book-chapter" id="book-chapter"></span>
+      <span class="book-page-label" id="book-page-label"></span>
+    </div>
+
+    <button class="book-flip book-flip--prev" id="book-prev" type="button" aria-label="上一页">‹</button>
+    <div class="book" id="book-volume">
+      <div class="book-static book-static--left" id="book-static-left"></div>
+      <div class="book-static book-static--right" id="book-static-right"></div>
+      <div class="book-leaves" id="book-leaves"></div>
+      <div class="book-spine" aria-hidden="true"></div>
+    </div>
+    <button class="book-flip book-flip--next" id="book-next" type="button" aria-label="下一页">›</button>
+  </main>
+
+  <aside class="book-toc" id="book-toc-panel" aria-label="目录" hidden>
+    <button class="book-toc-close" id="book-toc-close" type="button" aria-label="关闭目录">×</button>
+    <p class="book-toc-kicker">Contents</p>
+    <h2 class="book-toc-title">目录</h2>
+    <div class="book-toc-grid" id="book-toc-grid"></div>
+  </aside>
+
+  <script>window.BOOK_PHOTOS = __BOOK_PHOTOS__; window.BOOK_META = __BOOK_META__;</script>
+  <script>
+  (function () {
+    "use strict";
+
+    var photos = window.BOOK_PHOTOS || [];
+    var meta = window.BOOK_META || {};
+    var coverView = document.getElementById("cover-view");
+    var coverEnter = document.getElementById("cover-enter");
+    var coverBook = document.querySelector(".cover-book");
+    var bookView = document.getElementById("book-stage");
+    var leavesBox = document.getElementById("book-leaves");
+    var staticLeft = document.getElementById("book-static-left");
+    var staticRight = document.getElementById("book-static-right");
+    var volume = document.getElementById("book-volume");
+    var prevBtn = document.getElementById("book-prev");
+    var nextBtn = document.getElementById("book-next");
+    var labelEl = document.getElementById("book-page-label");
+    var chapterEl = document.getElementById("book-chapter");
+    var tocPanel = document.getElementById("book-toc-panel");
+    var tocGrid = document.getElementById("book-toc-grid");
+    var tocBtn = document.getElementById("book-toc");
+    var tocClose = document.getElementById("book-toc-close");
+    var coverBtn = document.getElementById("book-cover");
+    var mobileQuery = window.matchMedia("(max-width: 760px)");
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var spreads = [];
+    var leaves = [];
+    var index = 0;
+    var side = 0;
+    var animating = false;
+
+    function pad(n) { return n < 10 ? "0" + n : String(n); }
+    function isMobile() { return mobileQuery.matches; }
+
+    function chapterOf(p) { return (p && p.album) || meta.album || "画册"; }
+
+    function ratioOf(p) { return (p.w || 3) / (p.h || 2); }
+    function dirOf(p) {
+      var r = ratioOf(p);
+      if (r < 0.95) return "portrait";
+      if (r < 1.15) return "square";
+      if (r >= 1.45 && r <= 1.55) return "classic";
+      if (r < 1.45) return "landscape";
+      return "wide";
+    }
+    function variantFor(d) { return d === "classic" ? "landscape" : d; }
+    function photoDesc(p, d) { return { kind: "photo", photo: p, variant: variantFor(d) }; }
+    function blankDesc() { return { kind: "blank" }; }
+
+    // 版式节奏：竖幅单/双页、横幅双图、跨页大图、横幅单页、留白页交替。
+    // 竖幅一律单独一页或双竖图；横图分两类：接近 3:2 且间隔足够的才跨页，
+    // 其余横图做单页大图或双图组合，避免全部硬塞进跨页。
+    var plans = ["pair", "portrait", "pair", "single", "blank", "pair"];
+    var cursor = 0;
+    var lastType = "";
+    var sinceSpread = 9;
+    var turn = 0;
+
+    while (cursor < photos.length) {
+      var p = photos[cursor];
+      var q = photos[cursor + 1];
+      var d = dirOf(p);
+      var d2 = q ? dirOf(q) : null;
+      var plan = plans[turn % plans.length];
+      var type, left, right, used = 1;
+
+      if (d === "portrait") {
+        if (d2 === "portrait" && chapterOf(q) === chapterOf(p)) {
+          type = "portrait-pair";
+          left = photoDesc(p, d);
+          right = photoDesc(q, d2);
+          used = 2;
+        } else {
+          type = "portrait-single";
+          left = photoDesc(p, d);
+          right = blankDesc();
+        }
+      } else if (d === "classic" && sinceSpread >= 4 && lastType !== "spread") {
+        type = "spread";
+        left = { kind: "spread", photo: p, half: "left" };
+        right = { kind: "spread", photo: p, half: "right" };
+        sinceSpread = 0;
+      } else if (plan === "blank") {
+        type = "blank";
+        left = blankDesc();
+        right = blankDesc();
+        used = 0;
+      } else if (d2 && d2 !== "portrait" && chapterOf(q) === chapterOf(p) && plan !== "single" && lastType !== "pair") {
+        type = "pair";
+        left = photoDesc(p, d);
+        right = photoDesc(q, d2);
+        used = 2;
+      } else {
+        type = "single";
+        left = photoDesc(p, d);
+        right = blankDesc();
+      }
+
+      if (type === lastType && type === "single" && d2 && d2 !== "portrait" && chapterOf(q) === chapterOf(p)) {
+        type = "pair";
+        left = photoDesc(p, d);
+        right = photoDesc(q, d2);
+        used = 2;
+      }
+
+      spreads.push({ left: left, right: right, chapter: chapterOf(p), type: type });
+      cursor += used;
+      lastType = type;
+      sinceSpread++;
+      turn++;
+    }
+    if (!spreads.length) {
+      spreads.push({ left: blankDesc(), right: blankDesc(), chapter: meta.album || "画册", type: "blank" });
+    }
+    var chapters = [];
+    spreads.forEach(function (sp, i) {
+      var last = chapters[chapters.length - 1];
+      if (!last || last.name !== sp.chapter) {
+        chapters.push({ name: sp.chapter, from: i, to: i });
+      } else {
+        last.to = i;
+      }
+    });
+
+    var withDividers = [];
+    spreads.forEach(function (sp, i) {
+      chapters.forEach(function (ch) {
+        if (ch.from === i && chapters.indexOf(ch) > 0) {
+          withDividers.push({
+            left: { kind: "chapter", chapter: ch.name, number: chapters.indexOf(ch) + 1 },
+            right: { kind: "blank" },
+            chapter: ch.name
+          });
+        }
+      });
+      withDividers.push(sp);
+    });
+    spreads = withDividers;
+
+    function currentChapter() {
+      for (var i = index; i >= 0; i--) {
+        if (spreads[i] && spreads[i].left.kind === "chapter") {
+          return { number: spreads[i].left.number, name: spreads[i].left.chapter };
+        }
+      }
+      return { number: 1, name: meta.album || "画册" };
+    }
+
+    function makePage(desc, pageSide) {
+      var node = document.createElement("div");
+      node.className = "book-page book-page--" + pageSide;
+      if (desc.kind === "blank") {
+        node.classList.add("book-page--blank");
+        return node;
+      }
+      if (desc.kind === "chapter") {
+        node.classList.add("book-page--chapter");
+        var mark = document.createElement("div");
+        mark.className = "book-chapter-mark";
+        var num = document.createElement("span");
+        num.className = "book-chapter-no";
+        num.textContent = pad(desc.number);
+        var name = document.createElement("span");
+        name.className = "book-chapter-name";
+        name.textContent = desc.chapter;
+        mark.appendChild(num);
+        mark.appendChild(name);
+        node.appendChild(mark);
+        return node;
+      }
+      if (desc.kind === "spread") {
+        node.classList.add("book-page--spread");
+        var bg = document.createElement("div");
+        bg.className = "book-spread-image";
+        bg.setAttribute("data-bg", desc.photo.src);
+        bg.style.backgroundPosition = desc.half === "left" ? "left center" : "right center";
+        node.appendChild(bg);
+        return node;
+      }
+      node.classList.add("book-page--photo", "book-page--" + desc.variant);
+      var fig = document.createElement("figure");
+      fig.className = "book-photo";
+      var a = document.createElement("a");
+      a.className = "photo-link";
+      a.setAttribute("href", desc.photo.href);
+      a.setAttribute("data-caption", desc.photo.caption || "");
+      if (desc.photo.location) a.setAttribute("data-location", desc.photo.location);
+      a.setAttribute("data-photo-file", desc.photo.file);
+      var img = document.createElement("img");
+      img.setAttribute("data-src", desc.photo.src);
+      img.alt = desc.photo.caption || "";
+      img.width = desc.photo.w;
+      img.height = desc.photo.h;
+      a.appendChild(img);
+      fig.appendChild(a);
+      node.appendChild(fig);
+      return node;
+    }
+
+    function loadImages(node) {
+      if (!node) return;
+      var imgs = node.querySelectorAll("img[data-src]");
+      for (var i = 0; i < imgs.length; i++) {
+        imgs[i].src = imgs[i].getAttribute("data-src");
+        imgs[i].removeAttribute("data-src");
+      }
+      var bgs = node.querySelectorAll("[data-bg]");
+      for (var j = 0; j < bgs.length; j++) {
+        bgs[j].style.backgroundImage = 'url("' + bgs[j].getAttribute("data-bg") + '")';
+        bgs[j].removeAttribute("data-bg");
+      }
+    }
+
+    var pages = [];
+    spreads.forEach(function (sp) {
+      pages.push({ desc: sp.left, side: "left" });
+      pages.push({ desc: sp.right, side: "right" });
+    });
+
+    staticLeft.appendChild(makePage(pages[0].desc, "left"));
+    var evenPages = pages.length % 2 === 0;
+    staticRight.appendChild(makePage(evenPages ? pages[pages.length - 1].desc : { kind: "blank" }, "right"));
+
+    var leafCount = Math.floor((pages.length - 1) / 2);
+    for (var k = 0; k < leafCount; k++) {
+      var leaf = document.createElement("div");
+      leaf.className = "book-leaf";
+      var front = makePage(pages[2 * k + 1].desc, "right");
+      front.className += " book-face book-face--front";
+      var back = makePage(pages[2 * k + 2].desc, "left");
+      back.className += " book-face book-face--back";
+      leaf.appendChild(front);
+      leaf.appendChild(back);
+      leavesBox.appendChild(leaf);
+      leaves.push({ el: leaf, front: front, back: back });
+    }
+
+    var tocGroup = null;
+    spreads.forEach(function (sp, i) {
+      if (sp.left.kind === "chapter" || !tocGroup) {
+        var title = document.createElement("p");
+        title.className = "book-toc-group-title";
+        var ch = sp.left.kind === "chapter"
+          ? { number: sp.left.number, name: sp.left.chapter }
+          : { number: 1, name: sp.chapter };
+        title.textContent = pad(ch.number) + " · " + ch.name;
+        tocGrid.appendChild(title);
+        tocGroup = document.createElement("div");
+        tocGroup.className = "book-toc-grid-row";
+        tocGrid.appendChild(tocGroup);
+      }
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = pad(i + 1);
+      b.setAttribute("aria-label", "跳到第 " + (i + 1) + " 跨页");
+      b.addEventListener("click", function () {
+        tocPanel.hidden = true;
+        goTo(i, 0);
+      });
+      tocGroup.appendChild(b);
+    });
+
+    function updateZ() {
+      var total = leaves.length;
+      leaves.forEach(function (item, k) {
+        item.el.style.zIndex = String(k < index ? k + 1 : total * 2 - k + 1);
+      });
+    }
+
+    function loadNear() {
+      loadImages(staticLeft);
+      loadImages(staticRight);
+      [index - 1, index, index + 1].forEach(function (n) {
+        if (!leaves[n]) return;
+        loadImages(leaves[n].front);
+        loadImages(leaves[n].back);
+      });
+    }
+
+    function updateLabel() {
+      if (isMobile()) {
+        var pageNo = index * 2 + side + 1;
+        labelEl.textContent = pad(pageNo) + " / " + pad(pages.length);
+      } else {
+        labelEl.textContent = pad(index + 1) + " / " + pad(spreads.length);
+      }
+    }
+
+    function updateChapter() {
+      var ch = currentChapter();
+      chapterEl.textContent = pad(ch.number) + " · " + ch.name;
+    }
+
+    function applyMobileSide() {
+      updateChapter();
+      document.body.classList.toggle("book-side-right", side === 1);
+      document.body.classList.toggle("book-at-start", index === 0 && side === 0);
+      document.body.classList.toggle("book-at-end", index === spreads.length - 1 && side === 1);
+      updateLabel();
+    }
+
+    function turnMs() { return isMobile() ? 700 : 1300; }
+
+    function animateLeaf(delta, targetIndex) {
+      var moving = leaves[targetIndex];
+      if (!moving || reduceMotion) return;
+      moving.el.classList.add(delta > 0 ? "is-turning-next" : "is-turning-prev");
+      window.setTimeout(function () {
+        moving.el.classList.remove("is-turning-next", "is-turning-prev");
+      }, turnMs());
+    }
+
+    function goTo(next, direction) {
+      index = Math.max(0, Math.min(next, spreads.length - 1));
+      leaves.forEach(function (item, k) {
+        item.el.classList.toggle("is-turned", k < index);
+        item.el.classList.remove("is-turning-next", "is-turning-prev");
+      });
+      updateZ();
+      volume.classList.toggle("is-spread", spreads[index] && spreads[index].type === "spread");
+      if (direction && !reduceMotion) {
+        animateLeaf(direction, direction > 0 ? index - 1 : index);
+      }
+      prevBtn.disabled = index === 0 && side === 0;
+      nextBtn.disabled = index === spreads.length - 1 && side === 1;
+      loadNear();
+      applyMobileSide();
+      if (window.SHIGUANG_LIGHTBOX && window.SHIGUANG_LIGHTBOX.refresh) {
+        window.SHIGUANG_LIGHTBOX.refresh();
+      }
+    }
+
+    function flip(delta) {
+      if (animating) return;
+      if (isMobile()) {
+        var nextSide = side + delta;
+        if (nextSide >= 0 && nextSide <= 1) {
+          side = nextSide;
+          animating = true;
+          goTo(index, 0);
+          animateLeaf(delta, index);
+          window.setTimeout(function () { animating = false; }, reduceMotion ? 0 : turnMs() + 40);
+          return;
+        }
+        if (delta > 0 && index < spreads.length - 1) {
+          index++;
+          side = 0;
+        } else if (delta < 0 && index > 0) {
+          index--;
+          side = 1;
+        } else {
+          return;
+        }
+        animating = true;
+        goTo(index, delta);
+        window.setTimeout(function () { animating = false; }, reduceMotion ? 0 : turnMs() + 40);
+        return;
+      }
+      var target = index + delta;
+      if (target < 0 || target >= spreads.length) return;
+      animating = true;
+      goTo(target, delta);
+      window.setTimeout(function () { animating = false; }, reduceMotion ? 0 : turnMs() + 40);
+    }
+
+    coverEnter.addEventListener("click", function () {
+      if (!reduceMotion && coverBook) coverBook.classList.add("is-opening");
+      window.setTimeout(function () {
+        coverView.hidden = true;
+        bookView.hidden = false;
+        volume.classList.add("is-opening");
+        window.setTimeout(function () { volume.classList.remove("is-opening"); }, 620);
+        goTo(0, 0);
+      }, reduceMotion ? 0 : 420);
+    });
+    coverBtn.addEventListener("click", function () {
+      bookView.hidden = true;
+      tocPanel.hidden = true;
+      coverView.hidden = false;
+      if (coverBook) coverBook.classList.remove("is-opening");
+    });
+    tocBtn.addEventListener("click", function () { tocPanel.hidden = false; });
+    tocClose.addEventListener("click", function () { tocPanel.hidden = true; });
+    tocPanel.addEventListener("click", function (event) {
+      if (event.target === tocPanel) tocPanel.hidden = true;
+    });
+    prevBtn.addEventListener("click", function () { flip(-1); });
+    nextBtn.addEventListener("click", function () { flip(1); });
+
+    document.addEventListener("keydown", function (event) {
+      if (document.body.classList.contains("lightbox-open")) return;
+      if (!tocPanel.hidden) {
+        if (event.key === "Escape") { event.preventDefault(); tocPanel.hidden = true; }
+        return;
+      }
+      if (bookView.hidden) {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); coverEnter.click(); }
+        return;
+      }
+      if (event.key === "ArrowLeft") { event.preventDefault(); flip(-1); }
+      else if (event.key === "ArrowRight") { event.preventDefault(); flip(1); }
+      else if (event.key === "Home") { event.preventDefault(); goTo(0, 0); }
+      else if (event.key === "End") { event.preventDefault(); goTo(spreads.length - 1, 0); }
+    });
+
+    var touchX = 0;
+    var touchY = 0;
+    volume.addEventListener("touchstart", function (event) {
+      if (event.touches.length !== 1) return;
+      touchX = event.touches[0].clientX;
+      touchY = event.touches[0].clientY;
+    }, { passive: true });
+    volume.addEventListener("touchend", function (event) {
+      var t = event.changedTouches[0];
+      if (!t) return;
+      var dx = t.clientX - touchX;
+      var dy = t.clientY - touchY;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) flip(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    goTo(0, 0);
+  })();
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>
+"""
+
+
+def select_book_photos(albums: list[Album], config: dict[str, Any]) -> list[Photo]:
+    """默认取整个泉州册，再追加网页上手动加入的照片。"""
+    if not albums:
+        return []
+
+    by_name: dict[str, Photo] = {}
+    for album in albums:
+        for photo in album.photos:
+            photo.book_album = album.title
+            by_name.setdefault(Path(photo.rel_source).name, photo)
+
+    base_album = next((a for a in albums if a.title == config["album"]), None)
+    removed = set(config["removed"])
+    base = []
+    if base_album:
+        base = [p for p in base_album.photos if Path(p.rel_source).name not in removed]
+    else:
+        print(f"警告：画册默认册集「{config['album']}」不存在，画册只保留手动加入的照片。")
+
+    result: list[Photo] = []
+    seen: set[str] = set()
+    for photo in base:
+        key = str(photo.rel_source)
+        if key not in seen:
+            seen.add(key)
+            result.append(photo)
+    for name in config["added"]:
+        photo = by_name.get(name)
+        if not photo:
+            continue
+        key = str(photo.rel_source)
+        if key not in seen:
+            seen.add(key)
+            result.append(photo)
+    return result
+
+
+def book_html(photos: list[Photo], meta: dict[str, str] | None = None) -> str:
+    """把选中的照片渲染为唯一一本画册，不保留册集标题与选择器。"""
+    from urllib.parse import quote as _urlquote
+
+    meta = meta or {}
+    title = meta.get("title") or "水上行走影像"
+    author = meta.get("author") or "水上行走"
+    year = meta.get("year") or str(datetime.now().year)
+
+    data = []
+    for photo in photos:
+        view = photo.default
+        data.append(
+            {
+                "src": view["path"],
+                "w": view["w"],
+                "h": view["h"],
+                "href": "originals/" + _urlquote(str(photo.rel_source)),
+                "caption": photo.caption,
+                "location": photo.location,
+                "file": Path(photo.rel_source).name,
+                "album": getattr(photo, "book_album", "") or meta.get("album", ""),
+            }
+        )
+
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    meta_payload = json.dumps(
+        {"title": title, "author": author, "year": year, "album": meta.get("album", "")},
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return (
+        BOOK_TEMPLATE.replace("__BOOK_TITLE__", e(title))
+        .replace("__BOOK_AUTHOR__", e(author))
+        .replace("__BOOK_YEAR__", e(year))
+        .replace("__BOOK_PHOTOS__", payload)
+        .replace("__BOOK_META__", meta_payload)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1356,6 +1862,18 @@ def main() -> None:
             return
         print("没有找到包含照片的册集文件夹，生成空白照片库。")
         write_if_changed(output / "gallery.html", gallery_html([], depth))
+        write_if_changed(
+            output / "book.html",
+            book_html([], {
+                "title": "水上行走影像",
+                "author": "水上行走",
+                "year": str(datetime.now().year),
+                "album": book_photos.load(args.config)["album"],
+            }),
+        )
+        book_photos.write_manifest(
+            output, book_photos.load(args.config)["album"], []
+        )
         return
 
     if args.dry_run:
@@ -1380,16 +1898,32 @@ def main() -> None:
         else:
             print("  - 跳过（没有可用照片）")
 
+    book_config = book_photos.load(args.config)
+    book_meta = {
+        "title": f"{book_config['album']}影像",
+        "author": "水上行走",
+        "year": str(datetime.now().year),
+        "album": book_config["album"],
+    }
+
     if not albums:
         print("所有文件夹都没有可用照片，生成空白照片库。")
         write_if_changed(output / "gallery.html", gallery_html([], depth))
+        write_if_changed(output / "book.html", book_html([], book_meta))
+        book_photos.write_manifest(output, book_config["album"], [])
         return
 
     # 新册在前；同一年按标题排序。
     albums.sort(key=lambda a: (a.year or "", a.title), reverse=True)
 
-    new_files: set[str] = {"gallery.html"}
-    pages: dict[str, str] = {"gallery.html": gallery_html(albums, depth)}
+    book_selected = select_book_photos(albums, book_config)
+    print(f"画册：默认《{book_config['album']}》+ 手动添加 {len(book_config['added'])} 张 → {len(book_selected)} 张")
+
+    new_files: set[str] = {"gallery.html", "book.html", book_photos.MANIFEST_NAME}
+    pages: dict[str, str] = {
+        "gallery.html": gallery_html(albums, depth),
+        "book.html": book_html(book_selected, book_meta),
+    }
 
     for index, album in enumerate(albums, start=1):
         next_album = albums[index] if index < len(albums) else None
@@ -1410,6 +1944,12 @@ def main() -> None:
         if write_if_changed(output / name, content):
             changed += 1
             print(f"写入：{name}")
+
+    book_photos.write_manifest(
+        output,
+        book_config["album"],
+        [Path(p.rel_source).name for p in book_selected],
+    )
 
     cleanup_old(output, old_files, new_files)
 

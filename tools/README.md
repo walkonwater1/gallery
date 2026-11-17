@@ -121,7 +121,7 @@ python3 tools/build_gallery.py --source /mnt/nas/photos --album-depth 3 --dry-ru
   "cover": "DSC_0001.NEF",
   "lead": "雪落下的时候，世界先安静下来。",
   "prologue": "从第一场雪开始，沿着山路向北。这里收录的是同一段冬天里，光线落在雪上的不同方式。",
-  "signature": "拾光 · 2026 年 11 月",
+  "signature": "水上行走 · 2026 年 11 月",
   "end_quote": "照片会记得我们走过的地方，也会记得当时的光。",
   "chapters": {
     "01-初雪": {

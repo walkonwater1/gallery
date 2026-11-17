@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>泉州影像 · 水上行走</title>
+  <meta name="description" content="可在线翻阅的摄影画册。">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-book">
+  <a class="book-back" href="index.html" aria-label="返回照片库">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
+  </a>
+
+  <section class="cover-view" id="cover-view" aria-label="画册封面">
+    <button class="cover-book" id="cover-enter" type="button" aria-label="打开画册">
+      <span class="cover-book-spine" aria-hidden="true"></span>
+      <span class="cover-book-face">
+        <span class="cover-book-kicker">Photography Book</span>
+        <span class="cover-book-title">泉州影像</span>
+        <span class="cover-book-author">摄影　水上行走</span>
+        <span class="cover-book-year">2026</span>
+      </span>
+      <span class="cover-book-edge" aria-hidden="true"></span>
+    </button>
+    <span class="cover-hint">点击打开</span>
+  </section>
+
+  <main class="book-stage" id="book-stage" hidden>
+    <div class="book-bar">
+      <button class="book-mini" id="book-cover" type="button">封面</button>
+      <button class="book-mini" id="book-toc" type="button">目录</button>
+      <span class="book-chapter" id="book-chapter"></span>
+      <span class="book-page-label" id="book-page-label"></span>
+    </div>
+
+    <button class="book-flip book-flip--prev" id="book-prev" type="button" aria-label="上一页">‹</button>
+    <div class="book" id="book-volume">
+      <div class="book-static book-static--left" id="book-static-left"></div>
+      <div class="book-static book-static--right" id="book-static-right"></div>
+      <div class="book-leaves" id="book-leaves"></div>
+      <div class="book-spine" aria-hidden="true"></div>
+    </div>
+    <button class="book-flip book-flip--next" id="book-next" type="button" aria-label="下一页">›</button>
+  </main>
+
+  <aside class="book-toc" id="book-toc-panel" aria-label="目录" hidden>
+    <button class="book-toc-close" id="book-toc-close" type="button" aria-label="关闭目录">×</button>
+    <p class="book-toc-kicker">Contents</p>
+    <h2 class="book-toc-title">目录</h2>
+    <div class="book-toc-grid" id="book-toc-grid"></div>
+  </aside>
+
+  <script>window.BOOK_PHOTOS = [{"src":"assets/generated/album-8d7e6e66/a0fccdb6ecf6-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260315-P1085274.jpg","caption":"2026.03.15 · Panasonic DC-S5 · f/11 · 1/200s · ISO 100 · 20mm","location":"泉州","file":"20260315-P1085274.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/ed2d6476dd74-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260315-P1085278.jpg","caption":"2026.03.15 · Panasonic DC-S5 · f/9 · 10s · ISO 100 · 40mm","location":"泉州","file":"20260315-P1085278.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/0ddccc672a9d-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085284.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/9 · 1/125s · ISO 100 · 45mm","location":"泉州","file":"20260316-P1085284.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/7ef9db0b5d6c-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085285.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/9 · 1/50s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085285.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/11782bae5af1-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085286.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/9 · 1/25s · ISO 100 · 35mm","location":"泉州","file":"20260316-P1085286.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/61641aac9d76-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085290.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/250s · ISO 100 · 58mm","location":"泉州","file":"20260316-P1085290.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/b4d2f1b14aae-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085294.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/7.1 · 1/30s · ISO 100 · 29mm","location":"泉州","file":"20260316-P1085294.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/6c530ba66a8b-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085297.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/7.1 · 1/30s · ISO 100 · 29mm","location":"泉州","file":"20260316-P1085297.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/97f23060c973-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085311.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/14 · 1/10s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085311.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/a5da698fec40-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085318.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/18 · 1/25s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085318.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/570cbf3f44fe-1100.jpg","w":1100,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085319.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/18 · 1/25s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085319.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/3b6ecb94fe88-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085323.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/16 · 1/8s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085323.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/83d2dcc3e349-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085324.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/16 · 1/8s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085324.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/577ab8b4f5d9-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085327.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/16 · 1/13s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085327.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/653aa66a6a91-1100.jpg","w":1100,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085328.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/16 · 1/13s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085328.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/2c2fa97736d7-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085349.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/6.3 · 1/200s · ISO 100 · 45mm","location":"泉州","file":"20260316-P1085349.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/323787efae7e-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085376.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/6.3 · 1/100s · ISO 100 · 39mm","location":"泉州","file":"20260316-P1085376.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/d36479f2b916-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085387.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/4.4 · 1/400s · ISO 100 · 35mm","location":"泉州","file":"20260316-P1085387.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/5a0d6efb384c-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085389.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/4.4 · 1/400s · ISO 100 · 35mm","location":"泉州","file":"20260316-P1085389.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/27363f227b47-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085390.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/4.4 · 1/400s · ISO 100 · 35mm","location":"泉州","file":"20260316-P1085390.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/5966421bee67-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085402.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/4.6 · 1/400s · ISO 100 · 37mm","location":"泉州","file":"20260316-P1085402.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/24a985d27c11-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085407.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/4.6 · 1/640s · ISO 100 · 37mm","location":"泉州","file":"20260316-P1085407.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/c58e31cbd983-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085419.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/5 · 1/640s · ISO 100 · 36mm","location":"泉州","file":"20260316-P1085419.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/34928e07a613-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085436.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/200s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085436.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/460ec0e28918-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085445.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/11 · 1/10s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085445.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/bb1bf9d05b05-1100.jpg","w":1100,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085449.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/125s · ISO 100 · 32mm","location":"泉州","file":"20260316-P1085449.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/dd6925552d01-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085457.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/25s · ISO 100 · 27mm","location":"泉州","file":"20260316-P1085457.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/13e0ee04adb2-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085464.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/125s · ISO 100 · 53mm","location":"泉州","file":"20260316-P1085464.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/c9141e2149ba-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085468.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/160s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085468.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/8791fdcf37c9-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085473.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/25s · ISO 100 · 39mm","location":"泉州","file":"20260316-P1085473.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/6f36a7ad41d9-1100.jpg","w":1100,"h":734,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085474.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/25s · ISO 100 · 24mm","location":"泉州","file":"20260316-P1085474.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/0f349fa96a9f-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085475.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/13s · ISO 100 · 26mm","location":"泉州","file":"20260316-P1085475.jpg","album":"泉州"},{"src":"assets/generated/album-8d7e6e66/2ec6a02cebae-1100.jpg","w":734,"h":1100,"href":"originals/%E6%B3%89%E5%B7%9E/20260316-P1085485.jpg","caption":"2026.03.16 · Panasonic DC-S5 · f/8 · 1/25s · ISO 100 · 60mm","location":"泉州","file":"20260316-P1085485.jpg","album":"泉州"}]; window.BOOK_META = {"title":"泉州影像","author":"水上行走","year":"2026","album":"泉州"};</script>
+  <script>
+  (function () {
+    "use strict";
+
+    var photos = window.BOOK_PHOTOS || [];
+    var meta = window.BOOK_META || {};
+    var coverView = document.getElementById("cover-view");
+    var coverEnter = document.getElementById("cover-enter");
+    var coverBook = document.querySelector(".cover-book");
+    var bookView = document.getElementById("book-stage");
+    var leavesBox = document.getElementById("book-leaves");
+    var staticLeft = document.getElementById("book-static-left");
+    var staticRight = document.getElementById("book-static-right");
+    var volume = document.getElementById("book-volume");
+    var prevBtn = document.getElementById("book-prev");
+    var nextBtn = document.getElementById("book-next");
+    var labelEl = document.getElementById("book-page-label");
+    var chapterEl = document.getElementById("book-chapter");
+    var tocPanel = document.getElementById("book-toc-panel");
+    var tocGrid = document.getElementById("book-toc-grid");
+    var tocBtn = document.getElementById("book-toc");
+    var tocClose = document.getElementById("book-toc-close");
+    var coverBtn = document.getElementById("book-cover");
+    var mobileQuery = window.matchMedia("(max-width: 760px)");
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var spreads = [];
+    var leaves = [];
+    var index = 0;
+    var side = 0;
+    var animating = false;
+
+    function pad(n) { return n < 10 ? "0" + n : String(n); }
+    function isMobile() { return mobileQuery.matches; }
+
+    function chapterOf(p) { return (p && p.album) || meta.album || "画册"; }
+
+    function ratioOf(p) { return (p.w || 3) / (p.h || 2); }
+    function dirOf(p) {
+      var r = ratioOf(p);
+      if (r < 0.95) return "portrait";
+      if (r < 1.15) return "square";
+      if (r >= 1.45 && r <= 1.55) return "classic";
+      if (r < 1.45) return "landscape";
+      return "wide";
+    }
+    function variantFor(d) { return d === "classic" ? "landscape" : d; }
+    function photoDesc(p, d) { return { kind: "photo", photo: p, variant: variantFor(d) }; }
+    function blankDesc() { return { kind: "blank" }; }
+
+    // 版式节奏：竖幅单/双页、横幅双图、跨页大图、横幅单页、留白页交替。
+    // 竖幅一律单独一页或双竖图；横图分两类：接近 3:2 且间隔足够的才跨页，
+    // 其余横图做单页大图或双图组合，避免全部硬塞进跨页。
+    var plans = ["pair", "portrait", "pair", "single", "blank", "pair"];
+    var cursor = 0;
+    var lastType = "";
+    var sinceSpread = 9;
+    var turn = 0;
+
+    while (cursor < photos.length) {
+      var p = photos[cursor];
+      var q = photos[cursor + 1];
+      var d = dirOf(p);
+      var d2 = q ? dirOf(q) : null;
+      var plan = plans[turn % plans.length];
+      var type, left, right, used = 1;
+
+      if (d === "portrait") {
+        if (d2 === "portrait" && chapterOf(q) === chapterOf(p)) {
+          type = "portrait-pair";
+          left = photoDesc(p, d);
+          right = photoDesc(q, d2);
+          used = 2;
+        } else {
+          type = "portrait-single";
+          left = photoDesc(p, d);
+          right = blankDesc();
+        }
+      } else if (d === "classic" && sinceSpread >= 4 && lastType !== "spread") {
+        type = "spread";
+        left = { kind: "spread", photo: p, half: "left" };
+        right = { kind: "spread", photo: p, half: "right" };
+        sinceSpread = 0;
+      } else if (plan === "blank") {
+        type = "blank";
+        left = blankDesc();
+        right = blankDesc();
+        used = 0;
+      } else if (d2 && d2 !== "portrait" && chapterOf(q) === chapterOf(p) && plan !== "single" && lastType !== "pair") {
+        type = "pair";
+        left = photoDesc(p, d);
+        right = photoDesc(q, d2);
+        used = 2;
+      } else {
+        type = "single";
+        left = photoDesc(p, d);
+        right = blankDesc();
+      }
+
+      if (type === lastType && type === "single" && d2 && d2 !== "portrait" && chapterOf(q) === chapterOf(p)) {
+        type = "pair";
+        left = photoDesc(p, d);
+        right = photoDesc(q, d2);
+        used = 2;
+      }
+
+      spreads.push({ left: left, right: right, chapter: chapterOf(p), type: type });
+      cursor += used;
+      lastType = type;
+      sinceSpread++;
+      turn++;
+    }
+    if (!spreads.length) {
+      spreads.push({ left: blankDesc(), right: blankDesc(), chapter: meta.album || "画册", type: "blank" });
+    }
+    var chapters = [];
+    spreads.forEach(function (sp, i) {
+      var last = chapters[chapters.length - 1];
+      if (!last || last.name !== sp.chapter) {
+        chapters.push({ name: sp.chapter, from: i, to: i });
+      } else {
+        last.to = i;
+      }
+    });
+
+    var withDividers = [];
+    spreads.forEach(function (sp, i) {
+      chapters.forEach(function (ch) {
+        if (ch.from === i && chapters.indexOf(ch) > 0) {
+          withDividers.push({
+            left: { kind: "chapter", chapter: ch.name, number: chapters.indexOf(ch) + 1 },
+            right: { kind: "blank" },
+            chapter: ch.name
+          });
+        }
+      });
+      withDividers.push(sp);
+    });
+    spreads = withDividers;
+
+    function currentChapter() {
+      for (var i = index; i >= 0; i--) {
+        if (spreads[i] && spreads[i].left.kind === "chapter") {
+          return { number: spreads[i].left.number, name: spreads[i].left.chapter };
+        }
+      }
+      return { number: 1, name: meta.album || "画册" };
+    }
+
+    function makePage(desc, pageSide) {
+      var node = document.createElement("div");
+      node.className = "book-page book-page--" + pageSide;
+      if (desc.kind === "blank") {
+        node.classList.add("book-page--blank");
+        return node;
+      }
+      if (desc.kind === "chapter") {
+        node.classList.add("book-page--chapter");
+        var mark = document.createElement("div");
+        mark.className = "book-chapter-mark";
+        var num = document.createElement("span");
+        num.className = "book-chapter-no";
+        num.textContent = pad(desc.number);
+        var name = document.createElement("span");
+        name.className = "book-chapter-name";
+        name.textContent = desc.chapter;
+        mark.appendChild(num);
+        mark.appendChild(name);
+        node.appendChild(mark);
+        return node;
+      }
+      if (desc.kind === "spread") {
+        node.classList.add("book-page--spread");
+        var bg = document.createElement("div");
+        bg.className = "book-spread-image";
+        bg.setAttribute("data-bg", desc.photo.src);
+        bg.style.backgroundPosition = desc.half === "left" ? "left center" : "right center";
+        node.appendChild(bg);
+        return node;
+      }
+      node.classList.add("book-page--photo", "book-page--" + desc.variant);
+      var fig = document.createElement("figure");
+      fig.className = "book-photo";
+      var a = document.createElement("a");
+      a.className = "photo-link";
+      a.setAttribute("href", desc.photo.href);
+      a.setAttribute("data-caption", desc.photo.caption || "");
+      if (desc.photo.location) a.setAttribute("data-location", desc.photo.location);
+      a.setAttribute("data-photo-file", desc.photo.file);
+      var img = document.createElement("img");
+      img.setAttribute("data-src", desc.photo.src);
+      img.alt = desc.photo.caption || "";
+      img.width = desc.photo.w;
+      img.height = desc.photo.h;
+      a.appendChild(img);
+      fig.appendChild(a);
+      node.appendChild(fig);
+      return node;
+    }
+
+    function loadImages(node) {
+      if (!node) return;
+      var imgs = node.querySelectorAll("img[data-src]");
+      for (var i = 0; i < imgs.length; i++) {
+        imgs[i].src = imgs[i].getAttribute("data-src");
+        imgs[i].removeAttribute("data-src");
+      }
+      var bgs = node.querySelectorAll("[data-bg]");
+      for (var j = 0; j < bgs.length; j++) {
+        bgs[j].style.backgroundImage = 'url("' + bgs[j].getAttribute("data-bg") + '")';
+        bgs[j].removeAttribute("data-bg");
+      }
+    }
+
+    var pages = [];
+    spreads.forEach(function (sp) {
+      pages.push({ desc: sp.left, side: "left" });
+      pages.push({ desc: sp.right, side: "right" });
+    });
+
+    staticLeft.appendChild(makePage(pages[0].desc, "left"));
+    var evenPages = pages.length % 2 === 0;
+    staticRight.appendChild(makePage(evenPages ? pages[pages.length - 1].desc : { kind: "blank" }, "right"));
+
+    var leafCount = Math.floor((pages.length - 1) / 2);
+    for (var k = 0; k < leafCount; k++) {
+      var leaf = document.createElement("div");
+      leaf.className = "book-leaf";
+      var front = makePage(pages[2 * k + 1].desc, "right");
+      front.className += " book-face book-face--front";
+      var back = makePage(pages[2 * k + 2].desc, "left");
+      back.className += " book-face book-face--back";
+      leaf.appendChild(front);
+      leaf.appendChild(back);
+      leavesBox.appendChild(leaf);
+      leaves.push({ el: leaf, front: front, back: back });
+    }
+
+    var tocGroup = null;
+    spreads.forEach(function (sp, i) {
+      if (sp.left.kind === "chapter" || !tocGroup) {
+        var title = document.createElement("p");
+        title.className = "book-toc-group-title";
+        var ch = sp.left.kind === "chapter"
+          ? { number: sp.left.number, name: sp.left.chapter }
+          : { number: 1, name: sp.chapter };
+        title.textContent = pad(ch.number) + " · " + ch.name;
+        tocGrid.appendChild(title);
+        tocGroup = document.createElement("div");
+        tocGroup.className = "book-toc-grid-row";
+        tocGrid.appendChild(tocGroup);
+      }
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = pad(i + 1);
+      b.setAttribute("aria-label", "跳到第 " + (i + 1) + " 跨页");
+      b.addEventListener("click", function () {
+        tocPanel.hidden = true;
+        goTo(i, 0);
+      });
+      tocGroup.appendChild(b);
+    });
+
+    function updateZ() {
+      var total = leaves.length;
+      leaves.forEach(function (item, k) {
+        item.el.style.zIndex = String(k < index ? k + 1 : total * 2 - k + 1);
+      });
+    }
+
+    function loadNear() {
+      loadImages(staticLeft);
+      loadImages(staticRight);
+      [index - 1, index, index + 1].forEach(function (n) {
+        if (!leaves[n]) return;
+        loadImages(leaves[n].front);
+        loadImages(leaves[n].back);
+      });
+    }
+
+    function updateLabel() {
+      if (isMobile()) {
+        var pageNo = index * 2 + side + 1;
+        labelEl.textContent = pad(pageNo) + " / " + pad(pages.length);
+      } else {
+        labelEl.textContent = pad(index + 1) + " / " + pad(spreads.length);
+      }
+    }
+
+    function updateChapter() {
+      var ch = currentChapter();
+      chapterEl.textContent = pad(ch.number) + " · " + ch.name;
+    }
+
+    function applyMobileSide() {
+      updateChapter();
+      document.body.classList.toggle("book-side-right", side === 1);
+      document.body.classList.toggle("book-at-start", index === 0 && side === 0);
+      document.body.classList.toggle("book-at-end", index === spreads.length - 1 && side === 1);
+      updateLabel();
+    }
+
+    function turnMs() { return isMobile() ? 700 : 1300; }
+
+    function animateLeaf(delta, targetIndex) {
+      var moving = leaves[targetIndex];
+      if (!moving || reduceMotion) return;
+      moving.el.classList.add(delta > 0 ? "is-turning-next" : "is-turning-prev");
+      window.setTimeout(function () {
+        moving.el.classList.remove("is-turning-next", "is-turning-prev");
+      }, turnMs());
+    }
+
+    function goTo(next, direction) {
+      index = Math.max(0, Math.min(next, spreads.length - 1));
+      leaves.forEach(function (item, k) {
+        item.el.classList.toggle("is-turned", k < index);
+        item.el.classList.remove("is-turning-next", "is-turning-prev");
+      });
+      updateZ();
+      volume.classList.toggle("is-spread", spreads[index] && spreads[index].type === "spread");
+      if (direction && !reduceMotion) {
+        animateLeaf(direction, direction > 0 ? index - 1 : index);
+      }
+      prevBtn.disabled = index === 0 && side === 0;
+      nextBtn.disabled = index === spreads.length - 1 && side === 1;
+      loadNear();
+      applyMobileSide();
+      if (window.SHIGUANG_LIGHTBOX && window.SHIGUANG_LIGHTBOX.refresh) {
+        window.SHIGUANG_LIGHTBOX.refresh();
+      }
+    }
+
+    function flip(delta) {
+      if (animating) return;
+      if (isMobile()) {
+        var nextSide = side + delta;
+        if (nextSide >= 0 && nextSide <= 1) {
+          side = nextSide;
+          animating = true;
+          goTo(index, 0);
+          animateLeaf(delta, index);
+          window.setTimeout(function () { animating = false; }, reduceMotion ? 0 : turnMs() + 40);
+          return;
+        }
+        if (delta > 0 && index < spreads.length - 1) {
+          index++;
+          side = 0;
+        } else if (delta < 0 && index > 0) {
+          index--;
+          side = 1;
+        } else {
+          return;
+        }
+        animating = true;
+        goTo(index, delta);
+        window.setTimeout(function () { animating = false; }, reduceMotion ? 0 : turnMs() + 40);
+        return;
+      }
+      var target = index + delta;
+      if (target < 0 || target >= spreads.length) return;
+      animating = true;
+      goTo(target, delta);
+      window.setTimeout(function () { animating = false; }, reduceMotion ? 0 : turnMs() + 40);
+    }
+
+    coverEnter.addEventListener("click", function () {
+      if (!reduceMotion && coverBook) coverBook.classList.add("is-opening");
+      window.setTimeout(function () {
+        coverView.hidden = true;
+        bookView.hidden = false;
+        volume.classList.add("is-opening");
+        window.setTimeout(function () { volume.classList.remove("is-opening"); }, 620);
+        goTo(0, 0);
+      }, reduceMotion ? 0 : 420);
+    });
+    coverBtn.addEventListener("click", function () {
+      bookView.hidden = true;
+      tocPanel.hidden = true;
+      coverView.hidden = false;
+      if (coverBook) coverBook.classList.remove("is-opening");
+    });
+    tocBtn.addEventListener("click", function () { tocPanel.hidden = false; });
+    tocClose.addEventListener("click", function () { tocPanel.hidden = true; });
+    tocPanel.addEventListener("click", function (event) {
+      if (event.target === tocPanel) tocPanel.hidden = true;
+    });
+    prevBtn.addEventListener("click", function () { flip(-1); });
+    nextBtn.addEventListener("click", function () { flip(1); });
+
+    document.addEventListener("keydown", function (event) {
+      if (document.body.classList.contains("lightbox-open")) return;
+      if (!tocPanel.hidden) {
+        if (event.key === "Escape") { event.preventDefault(); tocPanel.hidden = true; }
+        return;
+      }
+      if (bookView.hidden) {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); coverEnter.click(); }
+        return;
+      }
+      if (event.key === "ArrowLeft") { event.preventDefault(); flip(-1); }
+      else if (event.key === "ArrowRight") { event.preventDefault(); flip(1); }
+      else if (event.key === "Home") { event.preventDefault(); goTo(0, 0); }
+      else if (event.key === "End") { event.preventDefault(); goTo(spreads.length - 1, 0); }
+    });
+
+    var touchX = 0;
+    var touchY = 0;
+    volume.addEventListener("touchstart", function (event) {
+      if (event.touches.length !== 1) return;
+      touchX = event.touches[0].clientX;
+      touchY = event.touches[0].clientY;
+    }, { passive: true });
+    volume.addEventListener("touchend", function (event) {
+      var t = event.changedTouches[0];
+      if (!t) return;
+      var dx = t.clientX - touchX;
+      var dy = t.clientY - touchY;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) flip(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    goTo(0, 0);
+  })();
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# 拾光画册 · H618 / Armbian 一键部署脚本
+# 水上行走画册 · H618 / Armbian 一键部署脚本
 #
 # 用法（在 H618 上，从项目目录运行）：
 #   sudo bash deploy/install-h618.sh
