@@ -1124,10 +1124,8 @@ def album_html(album: Album, index: int, total: int, next_album: Album | None) -
 
 def gallery_html(albums: list[Album], depth: int) -> str:
     total_photos = sum(a.count for a in albums)
-    years = sorted({a.year for a in albums if a.year})
-    year_label = years[-1] if years else "—"
-    items = []
-    for index, album in enumerate(albums, start=1):
+
+    def card(album: Album) -> str:
         cover = album.cover.default
         orientation = "is-portrait" if cover["h"] > cover["w"] else "is-landscape"
         subtitle = (album.subtitle or "").strip()
@@ -1142,14 +1140,13 @@ def gallery_html(albums: list[Album], depth: int) -> str:
             if location and location != album.title
             else ""
         )
-        items.append(f"""        <article class="archive-item {orientation} reveal">
+        return f"""        <article class="archive-item {orientation} reveal">
           <a class="archive-visual" href="{e(album.page_name)}" aria-label="翻阅《{e(album.title)}》" style="--cover-ratio: {cover["w"]} / {cover["h"]}">
-            <span class="visual-index">{index:02d}</span>
+            <span class="visual-index">{album.year or ""}</span>
             <img src="{e(cover["path"])}" alt="{e(album.title)}封面"
                  width="{cover["w"]}" height="{cover["h"]}" loading="lazy">
           </a>
           <div class="archive-copy">
-            <span class="archive-no">Auto Album · {e(album.year or album.date_range)}</span>
             <h2>{e(album.title)}</h2>
             {subtitle_html}
             <div class="archive-meta">
@@ -1157,10 +1154,65 @@ def gallery_html(albums: list[Album], depth: int) -> str:
               <span>{album.count} 幅影像</span>
             </div>
           </div>
-        </article>""")
+        </article>"""
 
-    if not items:
-        items.append('        <div class="archive-end reveal"></div>')
+    digital = [a for a in albums if a.rel.startswith("数码/")]
+    film = [a for a in albums if a.rel.startswith("胶片/")]
+    other = [a for a in albums if not (a.rel.startswith("数码/") or a.rel.startswith("胶片/"))]
+
+    by_year: dict[str, list[Album]] = {}
+    for album in digital:
+        parts = album.rel.split("/")
+        year = parts[1] if len(parts) > 1 else (album.year or "其他")
+        by_year.setdefault(year, []).append(album)
+    year_keys = sorted(by_year, reverse=True)
+
+    sections: list[str] = []
+    nav_items: list[str] = []
+    for year in year_keys:
+        anchor = f"year-{year}"
+        nav_items.append(f'<a href="#{anchor}">{e(year)}</a>')
+        cards = chr(10).join(card(a) for a in by_year[year])
+        sections.append(f"""    <section class="archive year-group" id="{anchor}" aria-label="{e(year)} 年数码册">
+      <div class="shell">
+        <div class="group-head reveal">
+          <h2>{e(year)}<span>Digital</span></h2>
+          <span class="group-count">{len(by_year[year])} 册</span>
+        </div>
+{cards}
+      </div>
+    </section>""")
+
+    if film:
+        nav_items.append('<a href="#film">胶片</a>')
+        cards = chr(10).join(card(a) for a in film)
+        sections.append(f"""    <section class="archive film-group" id="film" aria-label="胶片册">
+      <div class="shell">
+        <div class="group-head reveal">
+          <h2>胶片<span>Film</span></h2>
+          <span class="group-count">{len(film)} 册</span>
+        </div>
+{cards}
+      </div>
+    </section>""")
+
+    if other:
+        cards = chr(10).join(card(a) for a in other)
+        sections.append(f"""    <section class="archive other-group" aria-label="其他册集">
+      <div class="shell">
+        <div class="group-head reveal"><h2>其他<span>Other</span></h2></div>
+{cards}
+      </div>
+    </section>""")
+
+    if not sections:
+        sections.append('    <section class="archive"><div class="shell"><div class="archive-end reveal"></div></div></section>')
+
+    nav_html = "\n".join(
+        ['    <nav class="year-nav shell" aria-label="年份导航">'] +
+        [f"      {item}" for item in nav_items] +
+        ["    </nav>"]
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1183,23 +1235,18 @@ def gallery_html(albums: list[Album], depth: int) -> str:
     <section class="page-intro shell">
       <div class="page-intro-head">
         <div class="reveal">
-          <h1>相册<small>The Archive</small></h1>
+          <h1>水上行走<small>Walk on Water</small></h1>
         </div>
         <aside class="page-intro-aside reveal reveal-delay-1">
           <div class="page-stats" aria-label="相册数据">
-            <div><strong>{len(albums):02d}</strong><span>自动册集</span></div>
-            <div><strong>{total_photos}</strong><span>收录影像</span></div>
-            <div><strong>{e(year_label)}</strong><span>最近年份</span></div>
+            <div><strong>{len(albums):02d}</strong><span>册集</span></div>
+            <div><strong>{total_photos}</strong><span>影像</span></div>
           </div>
         </aside>
       </div>
     </section>
 
-    <section class="archive" aria-label="册集">
-      <div class="shell">
-{chr(10).join(items)}
-      </div>
-    </section>
+{chr(10).join(sections)}
   </main>
 
 
@@ -1830,6 +1877,8 @@ def parse_args() -> argparse.Namespace:
                         help="输出目录（网站根目录）")
     parser.add_argument("--album-depth", type=int, default=None,
                         help="第几层文件夹算一册：1=顶层，2=第二层，0=source 本身")
+    parser.add_argument("--max-albums", type=int, default=None,
+                        help="只生成前 N 册（按自然排序），用于分阶段发布")
     parser.add_argument("--max-edge", type=int, default=None,
                         help="大图最长边像素")
     parser.add_argument("--quality", type=int, default=None,
@@ -1880,6 +1929,11 @@ def main() -> None:
     print()
 
     roots = find_album_roots(source, depth)
+    if args.max_albums is not None and args.max_albums >= 0:
+        if args.max_albums == 0:
+            roots = []
+        else:
+            roots = roots[:args.max_albums]
     if not roots:
         if args.dry_run:
             print("没有找到包含照片的册集文件夹")

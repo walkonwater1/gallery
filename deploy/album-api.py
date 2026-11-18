@@ -10,12 +10,14 @@
     POST /api/show         {"file": "P1085284.jpg"}
     POST /api/book-add     {"file": "P1096445.jpg"}
     POST /api/book-remove  {"file": "P1096445.jpg"}
+    POST /api/delete       {"file": "P1096445.jpg"}
     GET  /api/book
     GET  /api/status
 """
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -31,7 +33,7 @@ HOST = "127.0.0.1"
 PORT = 8765
 UPDATE = "/root/start_sh/update-album.sh"
 LOCK = threading.Lock()
-ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove"}
+ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete"}
 
 
 def find_photo(name: str):
@@ -121,6 +123,32 @@ def apply_action(action: str, payload: dict) -> str:
             return book_photos.add(file_name)
         return book_photos.remove(file_name)
 
+    if action == "delete":
+        if not file_name:
+            raise ValueError("缺少照片文件名")
+        album_dir, name = find_photo(file_name)
+        config = cover.load_config(album_dir)
+        changed = False
+        if config.get("cover") == name:
+            config.pop("cover", None)
+            changed = True
+        hidden = [n for n in hide.hidden_of(album_dir) if n != name]
+        if len(hidden) != len(hide.hidden_of(album_dir)):
+            if hidden:
+                config["hidden_photos"] = hidden
+            else:
+                config.pop("hidden_photos", None)
+            changed = True
+        if changed:
+            cover.save_config(album_dir, config)
+        try:
+            book_photos.remove(name)
+        except Exception:
+            pass
+        photo = album_dir / name
+        os.remove(photo)
+        return f"已永久删除 {name}（{album_dir.name}）"
+
     raise ValueError("未知操作")
 
 
@@ -177,8 +205,9 @@ class Handler(BaseHTTPRequestHandler):
         with LOCK:
             try:
                 message = apply_action(action, payload)
-                rebuild()
-                self.send_json(200, {"ok": True, "message": message})
+                if action != "delete":
+                    rebuild()
+                self.send_json(200, {"ok": True, "message": message, "rebuilt": action != "delete"})
             except SystemExit:
                 self.send_json(400, {"ok": False, "message": "找不到该册集或照片"})
             except Exception as exc:

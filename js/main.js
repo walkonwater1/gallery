@@ -185,7 +185,7 @@
       '    <button class="lightbox-zoom-btn" type="button" data-zoom="reset" aria-label="适应屏幕">适应</button>',
       '    <button class="lightbox-zoom-btn lightbox-cover-btn" type="button" data-cover-set aria-label="把这张照片设为该册封面">设为封面</button>',
       '    <button class="lightbox-zoom-btn lightbox-book-btn" type="button" data-book-toggle aria-label="把这张照片加入画册" hidden>加入画册</button>',
-      '    <button class="lightbox-zoom-btn lightbox-hide-btn" type="button" data-hide-set aria-label="在网站上隐藏这张照片">不显示</button>',
+      '    <button class="lightbox-zoom-btn lightbox-delete-btn" type="button" data-delete-set aria-label="从磁盘永久删除这张照片">删除照片</button>',
       "  </div>",
       '  <button class="lightbox-close" type="button" aria-label="关闭照片预览"></button>',
       "</div>",
@@ -206,13 +206,13 @@
       "</div>",
       '<div class="lightbox-confirm" role="alertdialog" aria-modal="true" aria-labelledby="lightbox-confirm-title" hidden>',
       '  <div class="lightbox-confirm-box">',
-      '    <p class="lightbox-confirm-eyebrow">Hide photo</p>',
-      '    <h2 class="lightbox-confirm-title" id="lightbox-confirm-title">确定不显示这张照片？</h2>',
+      '    <p class="lightbox-confirm-eyebrow">Delete photo</p>',
+      '    <h2 class="lightbox-confirm-title" id="lightbox-confirm-title">确定永久删除这张照片？</h2>',
       '    <p class="lightbox-confirm-file"></p>',
-      '    <p class="lightbox-confirm-note">照片会从首页、册集页和画册页移除，并重新生成站点。本地原文件不会被删除，随时可以恢复。</p>',
+      '    <p class="lightbox-delete-note">警告：这张照片会从盒子磁盘上永久删除，无法恢复！请确认不再需要这张照片。</p>',
       '    <div class="lightbox-confirm-actions">',
       '      <button class="lightbox-confirm-cancel" type="button" data-confirm-cancel>取消</button>',
-      '      <button class="lightbox-confirm-ok" type="button" data-confirm-ok>确认隐藏</button>',
+      '      <button class="lightbox-confirm-ok is-danger" type="button" data-confirm-ok>确认删除</button>',
       "    </div>",
       "  </div>",
       "</div>"
@@ -233,7 +233,7 @@
       lightbox.querySelectorAll(".lightbox-zoom-btn[data-zoom]")
     );
     const coverButton = lightbox.querySelector("[data-cover-set]");
-    const hideButton = lightbox.querySelector("[data-hide-set]");
+    const deleteButton = lightbox.querySelector("[data-delete-set]");
     const bookButton = lightbox.querySelector("[data-book-toggle]");
     const coverHint = lightbox.querySelector(".lightbox-cover-hint");
     const confirmLayer = lightbox.querySelector(".lightbox-confirm");
@@ -241,7 +241,7 @@
     const confirmCancel = lightbox.querySelector("[data-confirm-cancel]");
     const confirmOk = lightbox.querySelector("[data-confirm-ok]");
     let coverHintTimer = 0;
-    let pendingHide = null;
+    let pendingDelete = null;
     let bookFiles = new Set();
     let bookBusy = false;
 
@@ -442,50 +442,62 @@
       });
     }
 
-    function openHideConfirm(file, link) {
-      pendingHide = { file: file, link: link };
+    function openDeleteConfirm(file) {
+      pendingDelete = { file: file };
       confirmFile.textContent = file;
       confirmLayer.hidden = false;
       confirmCancel.focus();
     }
 
-    function closeHideConfirm() {
-      pendingHide = null;
+    function closeDeleteConfirm() {
+      pendingDelete = null;
       confirmLayer.hidden = true;
-      hideButton.disabled = false;
-      hideButton.focus();
+      deleteButton.disabled = false;
+      deleteButton.focus();
     }
 
-    function commitHide() {
-      if (!pendingHide) return;
-      const file = pendingHide.file;
-      const link = pendingHide.link;
+    function commitDelete() {
+      if (!pendingDelete) return;
+      const file = pendingDelete.file;
       confirmLayer.hidden = true;
       confirmFile.textContent = "";
-      hideButton.disabled = true;
-      albumAction("hide", { file: file })
-        .then(function (data) { finishAction(data.message || "照片已隐藏"); })
-        .catch(function () {
-          hideButton.disabled = false;
-          fallbackHide(file, link);
+      deleteButton.disabled = true;
+      showHint("正在从盒子磁盘永久删除，请稍候…");
+      albumAction("delete", { file: file })
+        .then(function (data) {
+          const link = photoLinks[currentIndex];
+          if (link) hideLink(link);
+          photoLinks.splice(currentIndex, 1);
+          deleteButton.disabled = false;
+          if (!photoLinks.length) {
+            closeLightbox();
+          } else {
+            if (currentIndex >= photoLinks.length) currentIndex = photoLinks.length - 1;
+            render(currentIndex);
+          }
+          showHint((data.message || "照片已删除") + "，已从本页移除；刷新后站点会自动更新。", 6000);
+        })
+        .catch(function (error) {
+          deleteButton.disabled = false;
+          showHint("删除失败：" + (error && error.message ? error.message : "请检查盒子 API"));
         });
-      pendingHide = null;
+      pendingDelete = null;
     }
 
-    hideButton.addEventListener("click", function () {
+    deleteButton.addEventListener("click", function () {
       const link = photoLinks[currentIndex];
       const file = link && link.getAttribute("data-photo-file");
       if (!file) {
         showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
         return;
       }
-      openHideConfirm(file, link);
+      openDeleteConfirm(file);
     });
 
-    confirmCancel.addEventListener("click", closeHideConfirm);
-    confirmOk.addEventListener("click", commitHide);
+    confirmCancel.addEventListener("click", closeDeleteConfirm);
+    confirmOk.addEventListener("click", commitDelete);
     confirmLayer.addEventListener("click", function (event) {
-      if (event.target === confirmLayer) closeHideConfirm();
+      if (event.target === confirmLayer) closeDeleteConfirm();
     });
 
     lightbox.addEventListener("click", function (event) {
@@ -834,7 +846,7 @@
     function closeLightbox() {
       if (!confirmLayer.hidden) {
         confirmLayer.hidden = true;
-        pendingHide = null;
+        pendingDelete = null;
       }
       resetZoom();
       lightbox.classList.remove("is-open", "is-ready");
@@ -945,8 +957,8 @@
 
       if (!confirmLayer.hidden) {
         event.preventDefault();
-        if (event.key === "Escape") closeHideConfirm();
-        else if (event.key === "Enter") commitHide();
+        if (event.key === "Escape") closeDeleteConfirm();
+        else if (event.key === "Enter") commitDelete();
         return;
       }
 
@@ -1002,7 +1014,7 @@
       if (event.key !== "Tab") return;
 
       const focusable = zoomButtons
-        .concat([coverButton, hideButton, closeButton, prevButton, nextButton])
+        .concat([coverButton, deleteButton, closeButton, prevButton, nextButton])
         .filter(function (button) {
           return !button.hidden && !button.disabled && button.offsetParent !== null;
         });

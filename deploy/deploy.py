@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('/root/photograph')
+MAX_ALBUMS = int(sys.argv[2]) if len(sys.argv) > 2 else None
 WORK = Path('/root/lixin/digital_album')
 SITE = Path('/srv/digital_album')
 STAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -21,18 +22,26 @@ BOOK_URL = f'book.html?v={STAMP}'
 def nav_html(active: str) -> str:
     gallery = ' aria-current="page"' if active == 'gallery' else ''
     book = ' aria-current="page"' if active == 'book' else ''
+    years = ''.join(
+        f'<a href="index.html#year-{y}">{y}</a>' for y in (2026, 2025, 2024, 2023, 2022)
+    )
     return (
         '<nav class="site-nav" id="site-nav" aria-label="主导航">'
-        f'<a href="index.html"{gallery}>相册 <span>Archive</span></a>'
+        f'{years}'
+        '<a href="index.html#film">胶片</a>'
         f'<a href="{BOOK_URL}"{book}>画册 <span>Photo Book</span></a>'
         '</nav>'
     )
 
 
 def foot_nav_html() -> str:
+    years = ''.join(
+        f'<a href="index.html#year-{y}">{y}</a>' for y in (2026, 2025, 2024, 2023, 2022)
+    )
     return (
         '<nav class="footer-nav" aria-label="页脚导航">'
-        '<a href="index.html">相册</a>'
+        f'{years}'
+        '<a href="index.html#film">胶片</a>'
         f'<a href="{BOOK_URL}">画册</a>'
         '</nav>'
     )
@@ -55,11 +64,11 @@ def main():
 
     # 1. 生成
     import subprocess
-    subprocess.run(
-        [sys.executable, str(WORK / 'tools/build_gallery.py'),
-         '--source', str(SRC), '--config', str(WORK / 'gallery.config.json')],
-        check=True, cwd=WORK,
-    )
+    cmd = [sys.executable, str(WORK / 'tools/build_gallery.py'),
+           '--source', str(SRC), '--config', str(WORK / 'gallery.config.json')]
+    if MAX_ALBUMS is not None:
+        cmd += ['--max-albums', str(MAX_ALBUMS)]
+    subprocess.run(cmd, check=True, cwd=WORK)
 
     # 2. 精简 + 部署到带时间戳的新文件名（浏览器无缓存）
     gallery = clean((WORK / 'gallery.html').read_text(encoding='utf-8'))
