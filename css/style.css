@@ -5977,7 +5977,6 @@ body.page-archive.page-gallery .archive-meta {
 }
 
 body.page-archive.page-gallery .archive-item {
-  container-type: inline-size;
   background: var(--card-bg);
   border: 1px solid var(--line-light);
   padding-bottom: clamp(0.9rem, 1.6vw, 1.25rem);
@@ -6392,19 +6391,6 @@ body.page-archive.page-gallery .archive-meta,
 body.page-archive.page-gallery .archive-item.is-portrait .archive-meta {
   color: #746c5e;
 }
-
-/* 只统一封面里的图片高度，封面卡片本身保持原样 */
-body.page-archive.page-gallery .archive-item.is-portrait .archive-visual img {
-  position: absolute;
-  inset: auto;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 66.667cqw;
-  transform: translate(-50%, -50%);
-  object-fit: contain;
-}
-
 
 /* ---------- 页头更实，水上行走标识更清晰 ---------- */
 
