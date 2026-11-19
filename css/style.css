@@ -6647,8 +6647,7 @@ body.page-album .photo--full-bleed .photo-link {
 body.page-album .photo--full-bleed figcaption {
   margin-top: 0.7rem;
   padding: 0.7rem 0.9rem;
-  border: 1px solid rgba(32, 28, 22, 0.12);
-  border-radius: 2px;
+  border: 0;
   background: rgba(32, 28, 22, 0.025);
   color: #4d463b;
 }
@@ -6904,12 +6903,11 @@ body.page-gallery .group-count {
   }
 }
 
-/* 册集页图注：图下参数加细边框与淡底纹 */
+/* 册集页图注：只保留淡底纹，不画框线 */
 body.page-album .photo:not(.photo--full-bleed):not(.photo--side-note) figcaption {
   margin-top: 0.7rem;
   padding: 0.7rem 0.9rem;
-  border: 1px solid rgba(32, 28, 22, 0.12);
-  border-radius: 2px;
+  border: 0;
   background: rgba(32, 28, 22, 0.025);
 }
 
