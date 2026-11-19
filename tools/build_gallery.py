@@ -460,6 +460,15 @@ def find_album_roots(source: Path, depth: int) -> list[Path]:
             continue
         if any(iter_images(path)):
             roots.append(path)
+
+    # 胶片按顶层“胶片/”合并成一本册，内部再按日期分章。
+    film_root = source / "胶片"
+    if film_root.is_dir() and any(iter_images(film_root)):
+        roots = [
+            root for root in roots
+            if root != film_root and film_root not in root.parents
+        ]
+        roots.append(film_root)
     return roots
 
 
@@ -652,6 +661,32 @@ def discover_chapter_dirs(album_dir: Path) -> list[Path]:
     return dirs
 
 
+def film_chapter_groups(film_root: Path) -> list[tuple[str, str, list[Path]]]:
+    """按路径里的日期文件夹把胶片照片分章，跨胶卷型号合并同日照片。"""
+    groups: dict[str, list[Path]] = {}
+    stocks: dict[str, set[str]] = {}
+    for image in iter_images(film_root):
+        parts = image.relative_to(film_root).parts
+        date_part = next(
+            (part for part in reversed(parts[:-1]) if re.fullmatch(r"\d{8}", part)),
+            None,
+        )
+        key = date_part or (parts[0] if len(parts) > 1 else "未分类")
+        groups.setdefault(key, []).append(image)
+        if len(parts) > 1 and parts[0] != key:
+            stocks.setdefault(key, set()).add(parts[0])
+
+    chapters: list[tuple[str, str, list[Path]]] = []
+    for key in sorted(groups, key=natural_key):
+        if re.fullmatch(r"\d{8}", key):
+            title = f"{key[:4]}.{key[4:6]}.{key[6:]}"
+        else:
+            title = key
+        en = " · ".join(sorted(stocks.get(key, set()), key=natural_key))
+        chapters.append((title, en, groups[key]))
+    return chapters
+
+
 def build_chapter(
     source: Path,
     output_root: Path,
@@ -670,8 +705,12 @@ def build_chapter(
     max_edge: int,
     quality: int,
     force: bool,
+    extra_images: list[Path] | None = None,
+    reuse_cache_slug: bool = False,
 ) -> Chapter:
-    if chapter_dir is None:
+    if extra_images is not None:
+        images = list(extra_images)
+    elif chapter_dir is None:
         # 只取册集根目录下的直接图片，避免和子章节重复。
         images = [
             p for p in sorted(album_dir.iterdir(), key=lambda p: natural_key(p.name))
@@ -695,8 +734,16 @@ def build_chapter(
     seen: set[str] = set()
 
     for image_path in images:
+        photo_slug = album_slug
+        photo_output = output_dir
+        if reuse_cache_slug:
+            cached = cache.get(str(image_path.resolve()))
+            cached_slug = cached.get("slug") if isinstance(cached, dict) else None
+            if cached_slug:
+                photo_slug = str(cached_slug)
+                photo_output = photo_output_dir(output_root, photo_slug)
         photo, _ = process_photo(
-            source, output_root, image_path, output_dir, album_slug,
+            source, output_root, image_path, photo_output, photo_slug,
             cache, options_key, max_edge, quality, force,
         )
         if photo is None:
@@ -742,63 +789,80 @@ def build_album(
         return None
 
     rel = album_dir.relative_to(source)
-    default_title = album_dir.name if not rel.parts else display_title(rel, depth)
-    default_location = album_dir.name if not rel.parts else derive_location(rel)
+    is_film_album = len(rel.parts) == 1 and rel.parts[0] == "胶片"
+    default_title = "胶片集" if is_film_album else (
+        album_dir.name if not rel.parts else display_title(rel, depth)
+    )
+    default_location = "胶片" if is_film_album else (
+        album_dir.name if not rel.parts else derive_location(rel)
+    )
     title = str(config.get("title") or default_title).strip()
     subtitle = str(config.get("subtitle") or config.get("en") or "").strip()
-    slug = str(config.get("slug") or stable_slug(str(rel))).strip()
+    slug_default = "film" if is_film_album else stable_slug(str(rel))
+    slug = str(config.get("slug") or slug_default).strip()
     slug = re.sub(r"[^A-Za-z0-9_-]+", "-", slug).strip("-")[:60]
     if not slug:
-        slug = stable_slug(str(rel))
+        slug = slug_default
     if slug in slug_registry:
         slug = f"{slug}-{hashlib.sha1(str(rel).encode('utf-8')).hexdigest()[:6]}"
     slug_registry.add(slug)
     location = str(config.get("location") or default_location).strip()
 
-    chapter_dirs = discover_chapter_dirs(album_dir)
     chapter_config = config.get("chapters") or {}
     if not isinstance(chapter_config, dict):
         chapter_config = {}
 
     chapters: list[Chapter] = []
 
-    direct_images = [
-        p for p in album_dir.iterdir()
-        if p.is_file() and p.suffix.lower() in IMAGE_EXTS | RAW_EXTS | HEIC_EXTS
-    ]
-    if direct_images:
-        chapters.append(build_chapter(
-            source, output_root, album_dir, None,
-            "影像", "Photographs", "",
-            "", "",
-            slug, config, location,
-            cache, options_key, max_edge, quality, force,
-        ))
+    if is_film_album:
+        for chapter_title, chapter_en, images in film_chapter_groups(album_dir):
+            chapters.append(build_chapter(
+                source, output_root, album_dir, None,
+                chapter_title, chapter_en, "", "", "",
+                slug, config, location,
+                cache, options_key, max_edge, quality, force,
+                extra_images=images,
+                reuse_cache_slug=True,
+            ))
+    else:
+        chapter_dirs = discover_chapter_dirs(album_dir)
+        direct_images = [
+            p for p in album_dir.iterdir()
+            if p.is_file() and p.suffix.lower() in IMAGE_EXTS | RAW_EXTS | HEIC_EXTS
+        ]
+        if direct_images:
+            chapters.append(build_chapter(
+                source, output_root, album_dir, None,
+                "影像", "Photographs", "",
+                "", "",
+                slug, config, location,
+                cache, options_key, max_edge, quality, force,
+            ))
 
-    for chapter_dir in chapter_dirs:
-        raw_name = chapter_dir.name
-        chapter_meta = chapter_config.get(raw_name) or chapter_config.get(
-            re.sub(r"^\d+[\s._-]+", "", raw_name)
-        ) or {}
-        if not isinstance(chapter_meta, dict):
-            chapter_meta = {}
-        chapter_title = str(chapter_meta.get("title") or re.sub(
-            r"^\s*\d{1,3}[\s._-]+", "", raw_name
-        )).strip() or raw_name
-        chapter_en = str(chapter_meta.get("en") or chapter_meta.get("subtitle") or "").strip()
-        chapter_intro = str(chapter_meta.get("intro") or "").strip()
-        quote = chapter_meta.get("quote") or ""
-        quote_cite = chapter_meta.get("quote_cite") or ""
-        if isinstance(quote, dict):
-            quote_cite = quote.get("cite", quote_cite)
-            quote = quote.get("text", "")
-        chapters.append(build_chapter(
-            source, output_root, album_dir, chapter_dir,
-            chapter_title, chapter_en, chapter_intro,
-            str(quote), str(quote_cite),
-            slug, config, location,
-            cache, options_key, max_edge, quality, force,
-        ))
+        for chapter_dir in chapter_dirs:
+            raw_name = chapter_dir.name
+            chapter_meta = chapter_config.get(raw_name) or chapter_config.get(
+                re.sub(r"^\d+[\s._-]+", "", raw_name)
+            ) or {}
+            if not isinstance(chapter_meta, dict):
+                chapter_meta = {}
+            chapter_title = str(chapter_meta.get("title") or re.sub(
+                r"^\s*\d{1,3}[\s._-]+", "", raw_name
+            )).strip() or raw_name
+            chapter_en = str(chapter_meta.get("en") or chapter_meta.get("subtitle") or "").strip()
+            chapter_intro = str(chapter_meta.get("intro") or "").strip()
+            quote = chapter_meta.get("quote") or ""
+            quote_cite = chapter_meta.get("quote_cite") or ""
+            if isinstance(quote, dict):
+                quote_cite = quote.get("cite", quote_cite)
+                quote = quote.get("text", "")
+            chapters.append(build_chapter(
+                source, output_root, album_dir, chapter_dir,
+                chapter_title, chapter_en, chapter_intro,
+                str(quote), str(quote_cite),
+                slug, config, location,
+                cache, options_key, max_edge, quality, force,
+            ))
 
     chapters = [ch for ch in chapters if ch.photos]
     if not chapters:
@@ -1239,9 +1303,12 @@ def gallery_html(albums: list[Album], depth: int) -> str:
           </div>
         </article>"""
 
-    digital = [a for a in albums if a.rel.startswith("数码/")]
-    film = [a for a in albums if a.rel.startswith("胶片/")]
-    other = [a for a in albums if not (a.rel.startswith("数码/") or a.rel.startswith("胶片/"))]
+    digital = [a for a in albums if a.rel == "数码" or a.rel.startswith("数码/")]
+    film = [a for a in albums if a.rel == "胶片" or a.rel.startswith("胶片/")]
+    other = [a for a in albums if not (
+        a.rel == "数码" or a.rel.startswith("数码/")
+        or a.rel == "胶片" or a.rel.startswith("胶片/")
+    )]
 
     by_year: dict[str, list[Album]] = {}
     for album in digital:

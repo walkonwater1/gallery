@@ -53,7 +53,11 @@ def clean(html: str, active: str = 'gallery') -> str:
     html = re.sub(r'<nav class="site-nav".*?</nav>', nav_html(active), html, flags=re.S)
     html = re.sub(r'<nav class="footer-nav".*?</nav>', foot_nav_html(), html, flags=re.S)
     html = re.sub(r'<a class="text-link" href="albums\.html">返回手工册集</a>', '', html)
-    html = html.replace('href="gallery-album-', f'href="{PREFIX}')
+    html = re.sub(
+        r'href="gallery-([^"]+\.html)"',
+        lambda m: f'href="{PREFIX}{m.group(1)}"',
+        html,
+    )
     html = html.replace('href="gallery.html"', 'href="index.html"')
     html = html.replace('href="css/style.css"', f'href="css/style.css?v={STAMP}"')
     html = html.replace('src="js/main.js"', f'src="js/main.js?v={STAMP}"')
@@ -82,9 +86,9 @@ def main():
     (SITE / 'index.html').write_text(gallery, encoding='utf-8')
 
     count = 0
-    for p in sorted(WORK.glob('gallery-album-*.html')):
+    for p in sorted(WORK.glob('gallery-*.html')):
         html = clean(p.read_text(encoding='utf-8'))
-        slug = p.stem.replace('gallery-album-', '')
+        slug = p.stem[len('gallery-'):]
         (SITE / f'{PREFIX}{slug}.html').write_text(html, encoding='utf-8')
         count += 1
 
