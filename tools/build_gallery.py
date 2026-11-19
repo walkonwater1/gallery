@@ -222,8 +222,8 @@ def display_title(rel: Path, depth: int) -> str:
     parts = list(rel.parts)
     if not parts:
         return "未命名册集"
-    take = parts[-min(len(parts), 2):] if depth >= 2 else parts[-1:]
-    return " · ".join(clean_segment(p) for p in take)
+    # 年份已作为分组显示，标题只保留最后一级地点，避免「年份 · 城市」重复。
+    return clean_segment(parts[-1])
 
 
 def find_years(value: str) -> list[str]:
@@ -940,24 +940,72 @@ def figure_html(photo: Photo, number: int, css_class: str = "photo", in_grid: bo
     else:
         cam_text = cap_text
     cam_html = f'<span class="cap-cam">{e(cam_text)}</span>' if cam_text else ""
+    # 网格参数拆成左侧相机型号和右侧拍摄参数，只去掉日期
+    grid_camera = ""
+    grid_exposure = ""
+    if cam_text:
+        for bit in re.split(r"[·,，]", cam_text):
+            b = bit.strip()
+            if not b or re.match(r"^\d{4}[./-]\d{1,2}[./-]\d{1,2}", b):
+                continue
+            if re.match(r"^(f/|ISO|\d+/\d+s|\d+s|\d+(?:\.\d+)?mm)", b, re.I):
+                grid_exposure = f"{grid_exposure} {b}".strip()
+            elif not grid_camera:
+                grid_camera = b
+            else:
+                grid_exposure = f"{grid_exposure} {b}".strip()
+        if not grid_camera and not grid_exposure:
+            grid_camera = cam_text
     right_html = ""
-    if photo.location:
-        right_html += f'<span class="cap-loc">{e(photo.location)}</span>'
-    if cap_date:
-        right_html += f'<span class="cap-time">{e(cap_date)}</span>'
+    if not in_grid:
+        if photo.location:
+            right_html += f'<span class="cap-loc">{e(photo.location)}</span>'
+        if cap_date:
+            right_html += f'<span class="cap-time">{e(cap_date)}</span>'
 
+    # 网格里的竖图：相机参数放到照片侧边竖排，避免图注换行挤压
+    portrait_grid = in_grid and is_portrait(photo)
+    if portrait_grid:
+        side_bits = [f'<span class="cap-no">No. {number:02d}</span>']
+        if grid_camera:
+            side_bits.append(f'<span class="cap-cam">{e(grid_camera)}</span>')
+        if grid_exposure:
+            side_bits.append(f'<span class="cap-exposure">{e(grid_exposure)}</span>')
+        side = "".join(side_bits)
+        return f"""          <figure class="{e(css_class)} photo--side-note">
+            <div class="photo-frame">
+              <a class="photo-link" href="{e(original_href)}"
+                 data-caption="{e(photo.caption)}"{location_attr}
+                 data-photo-file="{e(photo_file)}"
+                 data-photo-path="{e(photo.rel_source)}">
+                <img src="{e(default["path"])}"
+                     srcset="{e(srcset_for(photo))}"
+                     sizes="{e(sizes)}"
+                     alt="{e(alt)}" width="{default["w"]}" height="{default["h"]}" loading="{loading}">
+              </a>
+              <aside class="photo-side-note">{side}</aside>
+            </div>
+          </figure>"""
+
+    shown_cam = grid_camera if in_grid else cam_text
+    shown_cam_html = f'<span class="cap-cam">{e(shown_cam)}</span>' if shown_cam else ""
+    exposure_html = (
+        f'<span class="cap-exposure">{e(grid_exposure)}</span>'
+        if in_grid and grid_exposure else ""
+    )
     return f"""          <figure class="{e(css_class)}">
             <a class="photo-link" href="{e(original_href)}"
                data-caption="{e(photo.caption)}"{location_attr}
-               data-photo-file="{e(photo_file)}">
+               data-photo-file="{e(photo_file)}"
+               data-photo-path="{e(photo.rel_source)}">
               <img src="{e(default["path"])}"
                    srcset="{e(srcset_for(photo))}"
                    sizes="{e(sizes)}"
                    alt="{e(alt)}" width="{default["w"]}" height="{default["h"]}" loading="{loading}">
             </a>
             <figcaption>
-              <span class="cap-left"><span class="cap-no">No. {number:02d}</span>{cam_html}</span>
-              <span class="cap-right">{right_html}</span>
+              <span class="cap-left"><span class="cap-no">No. {number:02d}</span>{shown_cam_html}</span>
+              <span class="cap-right">{right_html}{exposure_html}</span>
             </figcaption>
           </figure>"""
 
@@ -967,48 +1015,90 @@ def is_portrait(photo: Photo) -> bool:
 
 
 def photos_html(photos: list[Photo], start_number: int = 1) -> str:
+    """紧凑网格：普通照片一排 3-4 张，宽幅照片单独一行完整展示。"""
     blocks: list[str] = []
-    i = 0
     number = start_number
-    while i < len(photos):
-        photo = photos[i]
-        ratio = photo.width / max(photo.height, 1)
+    wide_ratio = 1.75  # 超过此比例视为宽幅，单独一行
 
-        # 每章第一张保持整幅，后续成对的竖图组成双栏。
-        if (
-            i + 1 < len(photos)
-            and i > 0
-            and is_portrait(photo)
-            and is_portrait(photos[i + 1])
-            and i % 4 != 0
-        ):
-            blocks.append(
-                '          <div class="photo-grid">\n'
-                + figure_html(photo, number, "photo", in_grid=True)
-                + "\n"
-                + figure_html(photos[i + 1], number + 1, "photo", in_grid=True)
-                + "\n          </div>"
-            )
-            i += 2
-            number += 2
-            continue
+    def is_wide(p: Photo) -> bool:
+        return p.width / max(p.height, 1) >= wide_ratio
 
-        if i == 0:
-            css_class = "photo"
-        elif ratio >= 1.75 and i % 6 == 0:
-            css_class = "photo photo--full-bleed"
-        elif ratio < 0.9:
-            css_class = "photo photo--portrait"
-        elif ratio >= 1.45:
-            css_class = "photo photo--inset-wide"
-        elif i % 4 == 0:
-            css_class = "photo photo--inset"
+    def grid_block(group: list[Photo], start_no: int) -> str:
+        body = "\n".join(
+            figure_html(p, start_no + k, "photo", in_grid=True)
+            for k, p in enumerate(group)
+        )
+        portrait = all(is_portrait(p) for p in group)
+        cls = "photo-grid--portrait" if portrait else "photo-grid--mixed"
+        ratios = [p.width / max(p.height, 1) for p in group]
+        side_notes = [is_portrait(p) for p in group]
+        ratio_sum = sum(ratios)
+        side_count = sum(side_notes)
+        caption_ratio_sum = sum(
+            r for r, side in zip(ratios, side_notes) if not side
+        )
+        base = (
+            f"(100% - {len(group) - 1} * var(--photo-grid-gap)"
+            f" - {side_count} * var(--photo-side-space)"
+            f" + {caption_ratio_sum:.4f} * var(--photo-caption-space))"
+        )
+        columns = " ".join(
+            f"calc({base} * {r / ratio_sum:.6f}"
+            + (" + var(--photo-side-space))" if side
+               else f" - {r:.4f} * var(--photo-caption-space))")
+            for r, side in zip(ratios, side_notes)
+        )
+        return f'          <div class="photo-grid {cls}" style="--photo-columns: {columns}">\n{body}\n          </div>'
+
+    pending: list[Photo] = []
+
+    def flush_pending():
+        nonlocal number
+        if not pending:
+            return
+
+        # 保持照片顺序，优先排满四张；比例差距大时调整相邻行的边界。
+        length = len(pending)
+        best = [float("inf")] * (length + 1)
+        choices = [0] * (length + 1)
+        best[length] = 0.0
+        for start in range(length - 1, -1, -1):
+            for count in (4, 3, 2, 1):
+                end = start + count
+                if end > length or (count == 1 and length != 1):
+                    continue
+                if count == 2 and length > 5:
+                    continue
+                ratios = [p.width / max(p.height, 1) for p in pending[start:end]]
+                mismatch = (max(ratios) / min(ratios) - 1) if count > 1 else 0
+                penalty = {4: 0, 3: 0.3, 2: 1.5, 1: 0}[count]
+                score = mismatch + penalty + best[end]
+                if score < best[start]:
+                    best[start] = score
+                    choices[start] = count
+
+        start = 0
+        while start < length:
+            count = choices[start]
+            group = pending[start:start + count]
+            if count == 1:
+                p = group[0]
+                cls = "photo photo--portrait" if is_portrait(p) else "photo photo--inset-wide"
+                blocks.append(figure_html(p, number, cls))
+            else:
+                blocks.append(grid_block(group, number))
+            start += count
+            number += count
+        pending.clear()
+
+    for photo in photos:
+        if is_wide(photo):
+            flush_pending()
+            blocks.append(figure_html(photo, number, "photo photo--full-bleed"))
+            number += 1
         else:
-            css_class = "photo"
-
-        blocks.append(figure_html(photo, number, css_class))
-        i += 1
-        number += 1
+            pending.append(photo)
+    flush_pending()
 
     return "\n\n".join(blocks)
 
@@ -1127,6 +1217,7 @@ def gallery_html(albums: list[Album], depth: int) -> str:
 
     def card(album: Album) -> str:
         cover = album.cover.default
+        thumb = album.cover.outputs.get("480") or cover
         orientation = "is-portrait" if cover["h"] > cover["w"] else "is-landscape"
         subtitle = (album.subtitle or "").strip()
         subtitle_html = (
@@ -1134,23 +1225,15 @@ def gallery_html(albums: list[Album], depth: int) -> str:
             if subtitle and subtitle != album.title
             else ""
         )
-        location = (album.location or "").strip()
-        location_html = (
-            f"<span>{e(location)}</span>"
-            if location and location != album.title
-            else ""
-        )
         return f"""        <article class="archive-item {orientation} reveal">
-          <a class="archive-visual" href="{e(album.page_name)}" aria-label="翻阅《{e(album.title)}》" style="--cover-ratio: {cover["w"]} / {cover["h"]}">
-            <span class="visual-index">{album.year or ""}</span>
-            <img src="{e(cover["path"])}" alt="{e(album.title)}封面"
-                 width="{cover["w"]}" height="{cover["h"]}" loading="lazy">
+          <a class="archive-visual is-progressive" href="{e(album.page_name)}" aria-label="翻阅《{e(album.title)}》" style="--cover-ratio: {cover["w"]} / {cover["h"]}; --thumb-url: url('{e(thumb["path"])}')">
+            <img src="{e(thumb["path"])}" data-hi="{e(cover["path"])}" alt="{e(album.title)}封面"
+                 width="{cover["w"]}" height="{cover["h"]}" loading="lazy" decoding="async">
           </a>
           <div class="archive-copy">
             <h2>{e(album.title)}</h2>
             {subtitle_html}
             <div class="archive-meta">
-              {location_html}
               <span>{album.count} 幅影像</span>
             </div>
           </div>
@@ -1501,6 +1584,7 @@ BOOK_TEMPLATE = r"""<!DOCTYPE html>
       a.setAttribute("data-caption", desc.photo.caption || "");
       if (desc.photo.location) a.setAttribute("data-location", desc.photo.location);
       a.setAttribute("data-photo-file", desc.photo.file);
+      a.setAttribute("data-photo-path", desc.photo.path || desc.photo.file);
       var img = document.createElement("img");
       img.setAttribute("data-src", desc.photo.src);
       img.alt = desc.photo.caption || "";
@@ -1804,6 +1888,7 @@ def book_html(photos: list[Photo], meta: dict[str, str] | None = None) -> str:
                 "caption": photo.caption,
                 "location": photo.location,
                 "file": Path(photo.rel_source).name,
+                "path": str(photo.rel_source),
                 "album": getattr(photo, "book_album", "") or meta.get("album", ""),
             }
         )

@@ -1678,7 +1678,7 @@ ol {
   grid-template-columns: minmax(120px, 0.33fr) minmax(0, 1fr) minmax(260px, 0.67fr);
   align-items: start;
   gap: clamp(1.5rem, 4vw, 4rem);
-  margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  margin-bottom: clamp(1.5rem, 2.5vw, 2.5rem);
   padding-top: clamp(2.4rem, 4vw, 3.6rem);
   border-top: 1px solid var(--line);
 }
@@ -1733,9 +1733,16 @@ ol {
 
 .photo + .photo,
 .photo-grid + .photo,
-.photo + .photo-grid,
-.photo-grid + .photo-grid {
+.photo + .photo-grid {
   margin-top: clamp(1.5rem, 3vw, 2.8rem);
+}
+
+.photo-grid + .photo-grid {
+  margin-top: clamp(0.6rem, 1vw, 0.9rem);
+}
+
+.photo-grid .photo + .photo {
+  margin-top: 0 !important;
 }
 
 .photo-link {
@@ -1792,16 +1799,12 @@ ol {
 }
 
 .photo--full-bleed {
-  margin-inline: calc(50% - 50vw);
+  margin-inline: 0;
 }
 
 .photo--full-bleed .photo-link img {
   max-height: 88vh;
-  object-fit: cover;
-}
-
-.photo--full-bleed figcaption {
-  padding-inline: var(--gutter);
+  object-fit: contain;
 }
 
 .photo--portrait {
@@ -1810,15 +1813,20 @@ ol {
 }
 
 .photo-grid {
+  --photo-grid-gap: clamp(0.6rem, 1.4vw, 1.2rem);
+  --photo-side-space: 2rem;
+  --photo-caption-space: 1.4rem;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(0.8rem, 2vw, 1.8rem);
+  grid-template-columns: var(--photo-columns, repeat(4, minmax(0, 1fr)));
+  gap: var(--photo-grid-gap);
   align-items: start;
 }
 
 .photo-grid .photo-link img {
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
 }
 
 .photo-grid--offset {
@@ -2709,9 +2717,11 @@ ol {
     font-size: clamp(2.5rem, 9vw, 4rem);
   }
 
-  .photo-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .photo-grid,
+  .photo-grid--portrait,
+  .photo-grid--mixed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
   }
 
   .photo-grid--offset {
@@ -2720,6 +2730,7 @@ ol {
 
   .photo-grid .photo-link img {
     aspect-ratio: auto;
+    object-fit: contain;
   }
 
   .photo--inset,
@@ -5966,6 +5977,7 @@ body.page-archive.page-gallery .archive-meta {
 }
 
 body.page-archive.page-gallery .archive-item {
+  container-type: inline-size;
   background: var(--card-bg);
   border: 1px solid var(--line-light);
   padding-bottom: clamp(0.9rem, 1.6vw, 1.25rem);
@@ -6171,7 +6183,7 @@ body.page-archive.page-gallery .archive-item.is-landscape {
   flex-direction: column;
   align-items: stretch;
   gap: 0;
-  min-height: 0;
+  min-height: clamp(280px, 26vw, 400px);
   padding: 0 0 clamp(0.6rem, 1.2vw, 0.9rem);
   border: 1px solid var(--line-light);
   border-radius: 0;
@@ -6247,7 +6259,7 @@ body.page-archive.page-gallery .archive-item.is-portrait .archive-visual {
   align-self: stretch;
   display: block;
   width: auto;
-  height: auto;
+  height: 100%;
   aspect-ratio: var(--cover-ratio, 2 / 3);
   overflow: hidden;
   background: var(--card-bg);
@@ -6379,6 +6391,18 @@ body.page-archive.page-gallery .archive-item.is-portrait .archive-copy .album-en
 body.page-archive.page-gallery .archive-meta,
 body.page-archive.page-gallery .archive-item.is-portrait .archive-meta {
   color: #746c5e;
+}
+
+/* 只统一封面里的图片高度，封面卡片本身保持原样 */
+body.page-archive.page-gallery .archive-item.is-portrait .archive-visual img {
+  position: absolute;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 66.667cqw;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
 }
 
 
@@ -6621,11 +6645,26 @@ body.page-album .photo-link {
   box-shadow: 0 30px 70px -55px rgba(0, 0, 0, 0.85);
 }
 
-/* 通栏大图仍然贴边，不套白框 */
+/* 宽幅大图也保留白框，但不贴满视口 */
+body.page-album .photo--full-bleed {
+  background: #fbf8f1;
+  padding: clamp(4px, 0.5vw, 6px) clamp(4px, 0.5vw, 6px) 0;
+  box-shadow: 0 30px 70px -55px rgba(0, 0, 0, 0.85);
+}
+
 body.page-album .photo--full-bleed .photo-link {
   background: transparent;
   padding: 0;
   box-shadow: none;
+}
+
+body.page-album .photo--full-bleed figcaption {
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(32, 28, 22, 0.12);
+  border-radius: 2px;
+  background: rgba(32, 28, 22, 0.025);
+  color: #4d463b;
 }
 
 /* ---------- 册集内页：白框 + 下边框内嵌图注 ---------- */
@@ -6739,6 +6778,7 @@ body.page-gallery .film-group + .other-group {
 }
 
 body.page-gallery .group-head {
+  grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -6797,4 +6837,192 @@ body.page-gallery .group-count {
 .footer-nav a {
   font-size: 0.72rem;
   letter-spacing: 0.08em;
+}
+
+/* 渐进封面：缩略图先显示，高清图加载完成后淡入 */
+.archive-visual.is-progressive img {
+  transition: filter 0.4s ease;
+}
+
+.archive-visual.is-progressive img:not(.is-hi) {
+  filter: blur(1px);
+}
+
+.archive-visual.is-progressive img.is-hi {
+  filter: none;
+}
+
+.lightbox-tag-btn {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid rgba(251, 248, 241, 0.2);
+  white-space: nowrap;
+}
+
+/* 网格竖图：相机参数在照片侧边竖排，避免图下换行挤压 */
+.photo--side-note {
+  padding-bottom: 6px !important;
+}
+
+.photo--side-note .photo-frame {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.photo--side-note .photo-link {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.photo--side-note .photo-side-note {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.7rem;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+  font-family: var(--font-latin);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  line-height: 1.4;
+  max-height: 100%;
+  width: 1.4em;
+  overflow: hidden;
+}
+
+.photo--side-note .photo-side-note .cap-no {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.photo--side-note .photo-side-note .cap-cam,
+.photo--side-note .photo-side-note .cap-exposure {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 80%;
+}
+
+.photo--side-note figcaption {
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .photo--side-note .photo-side-note {
+    font-size: 0.52rem;
+  }
+}
+
+/* 册集页图注：图下参数加细边框与淡底纹 */
+body.page-album .photo:not(.photo--full-bleed):not(.photo--side-note) figcaption {
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(32, 28, 22, 0.12);
+  border-radius: 2px;
+  background: rgba(32, 28, 22, 0.025);
+}
+
+/* 四栏网格里的横图：参数压成一行，超出省略，不再堆叠换行 */
+.photo-grid figure:not(.photo--side-note) figcaption {
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0.25rem;
+  padding-top: 0.45rem;
+  min-height: 1.4rem;
+  overflow: hidden;
+  border: 0;
+  background: none;
+}
+
+.photo-grid figure:not(.photo--side-note) figcaption .cap-left,
+.photo-grid figure:not(.photo--side-note) figcaption .cap-right {
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-grid figure:not(.photo--side-note) figcaption .cap-left {
+  flex: 0 0 auto;
+}
+
+.photo-grid figure:not(.photo--side-note) figcaption .cap-right {
+  margin-left: auto;
+  flex: 0 1 auto;
+}
+
+.photo-grid figure:not(.photo--side-note) figcaption .cap-no,
+.photo-grid figure:not(.photo--side-note) figcaption .cap-cam,
+.photo-grid figure:not(.photo--side-note) figcaption .cap-exposure,
+.photo-grid figure:not(.photo--side-note) figcaption .cap-loc,
+.photo-grid figure:not(.photo--side-note) figcaption .cap-time {
+  font-size: 0.55rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.photo-grid figure:not(.photo--side-note) figcaption .cap-cam,
+.photo-grid figure:not(.photo--side-note) figcaption .cap-exposure {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-grid figure:not(.photo--side-note) figcaption {
+  padding: 0.25rem 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  background: none !important;
+}
+
+/* 网格内横版图注与竖版侧边参数：统一字体、字号、字距和颜色 */
+body.page-album .photo-grid figure:not(.photo--side-note) figcaption,
+body.page-album .photo-grid .photo--side-note .photo-side-note {
+  font-family: var(--font-latin);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  color: #4d463b;
+}
+
+body.page-album .photo-grid figure:not(.photo--side-note) figcaption .cap-no,
+body.page-album .photo-grid .photo--side-note .photo-side-note .cap-no {
+  font-family: var(--font-latin);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: #7d5f2e;
+}
+
+body.page-album .photo-grid figure:not(.photo--side-note) figcaption .cap-cam,
+body.page-album .photo-grid figure:not(.photo--side-note) figcaption .cap-exposure,
+body.page-album .photo-grid .photo--side-note .photo-side-note .cap-cam,
+body.page-album .photo-grid .photo--side-note .photo-side-note .cap-exposure {
+  font-family: var(--font-latin);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: #4d463b;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+  body.page-album .photo-grid figure:not(.photo--side-note) figcaption,
+  body.page-album .photo-grid .photo--side-note .photo-side-note,
+  body.page-album .photo-grid figure:not(.photo--side-note) figcaption .cap-cam,
+  body.page-album .photo-grid figure:not(.photo--side-note) figcaption .cap-exposure,
+  body.page-album .photo-grid .photo--side-note .photo-side-note .cap-cam,
+  body.page-album .photo-grid .photo--side-note .photo-side-note .cap-exposure {
+    font-size: 0.52rem;
+  }
+
+  body.page-album .photo-grid figure:not(.photo--side-note) figcaption .cap-no,
+  body.page-album .photo-grid .photo--side-note .photo-side-note .cap-no {
+    font-size: 0.5rem;
+  }
 }

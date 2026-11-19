@@ -3,9 +3,11 @@
 
 部署到盒子的 /root/lixin/digital_album/deploy.py，由 /root/start_sh/update-album.sh 调用。
 """
+import os
 import re
 import sys
 import shutil
+import fcntl
 from datetime import datetime
 from pathlib import Path
 
@@ -59,6 +61,10 @@ def clean(html: str, active: str = 'gallery') -> str:
 
 
 def main():
+    # 同一时间只允许一个重建；等待锁而不是跳过，确保每次删除最终都会被生成
+    lock_path = Path('/tmp/digital-album-deploy.lock')
+    lock_file = lock_path.open('w')
+    fcntl.flock(lock_file, fcntl.LOCK_EX)
     print(f'源目录: {SRC}')
     print(f'时间戳: {STAMP}')
 
@@ -89,12 +95,19 @@ def main():
         )
         print('写入：book.html（画册页）')
 
-    # 3. 复制生成图（覆盖即可）
+    # 3. 复制生成图：先复制到临时目录，再原子替换，避免中途失败留下残缺目录
     if (WORK / 'assets/generated').exists():
         dest = SITE / 'assets/generated'
+        tmp = SITE / '.assets-generated-next'
+        if tmp.exists():
+            shutil.rmtree(tmp)
+        shutil.copytree(WORK / 'assets/generated', tmp)
         if dest.exists():
             shutil.rmtree(dest)
-        shutil.copytree(WORK / 'assets/generated', dest)
+        tmp.rename(dest)
+        for root, dirs, files in os.walk(dest):
+            for name in dirs + files:
+                shutil.chown(os.path.join(root, name), 33, 33)
 
     # 4. 清理旧的时间戳页面（保留最新一套 + index）
     for p in SITE.glob('album_*.html'):

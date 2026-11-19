@@ -10,6 +10,45 @@
   ).matches;
 
   /* -------------------------------------------------------
+     Progressive covers — 先显示 480 缩略图，再后台换 1100 清晰图
+     ------------------------------------------------------- */
+  function upgradeCover(img) {
+    const hi = img.getAttribute("data-hi");
+    if (!hi) return Promise.resolve();
+    img.removeAttribute("data-hi");
+    return new Promise(function (resolve) {
+      const loader = new Image();
+      loader.onload = function () {
+        img.src = hi;
+        img.classList.add("is-hi");
+        resolve();
+      };
+      loader.onerror = function () {
+        /* 高清图加载失败时保留已显示的缩略图 */
+        resolve();
+      };
+      loader.src = hi;
+    });
+  }
+
+  const coverImgs = Array.prototype.slice.call(
+    document.querySelectorAll(".archive-visual.is-progressive img[data-hi]")
+  );
+  if (coverImgs.length) {
+    // 后台分批升级全部封面为高清，避免视口外的封面一直停在缩略图。
+    // 每批 6 张，加载完一批再下一批，既快又不把链路打满。
+    let cursor = 0;
+    function pump() {
+      const batch = coverImgs.slice(cursor, cursor + 6);
+      cursor += batch.length;
+      Promise.all(batch.map(upgradeCover)).then(function () {
+        if (cursor < coverImgs.length) setTimeout(pump, 0);
+      });
+    }
+    setTimeout(pump, 200);
+  }
+
+  /* -------------------------------------------------------
      Header state
      ------------------------------------------------------- */
   const header = document.querySelector(".site-header");
@@ -185,6 +224,7 @@
       '    <button class="lightbox-zoom-btn" type="button" data-zoom="reset" aria-label="适应屏幕">适应</button>',
       '    <button class="lightbox-zoom-btn lightbox-cover-btn" type="button" data-cover-set aria-label="把这张照片设为该册封面">设为封面</button>',
       '    <button class="lightbox-zoom-btn lightbox-book-btn" type="button" data-book-toggle aria-label="把这张照片加入画册" hidden>加入画册</button>',
+      '    <button class="lightbox-zoom-btn lightbox-tag-btn" type="button" data-tag-set aria-label="给这张照片标注景点">标景点</button>',
       '    <button class="lightbox-zoom-btn lightbox-delete-btn" type="button" data-delete-set aria-label="从磁盘永久删除这张照片">删除照片</button>',
       "  </div>",
       '  <button class="lightbox-close" type="button" aria-label="关闭照片预览"></button>',
@@ -234,6 +274,7 @@
     );
     const coverButton = lightbox.querySelector("[data-cover-set]");
     const deleteButton = lightbox.querySelector("[data-delete-set]");
+    const tagButton = lightbox.querySelector("[data-tag-set]");
     const bookButton = lightbox.querySelector("[data-book-toggle]");
     const coverHint = lightbox.querySelector(".lightbox-cover-hint");
     const confirmLayer = lightbox.querySelector(".lightbox-confirm");
@@ -442,9 +483,9 @@
       });
     }
 
-    function openDeleteConfirm(file) {
-      pendingDelete = { file: file };
-      confirmFile.textContent = file;
+    function openDeleteConfirm(file, path) {
+      pendingDelete = { file: file, path: path || file };
+      confirmFile.textContent = path || file;
       confirmLayer.hidden = false;
       confirmCancel.focus();
     }
@@ -459,11 +500,12 @@
     function commitDelete() {
       if (!pendingDelete) return;
       const file = pendingDelete.file;
+      const path = pendingDelete.path || file;
       confirmLayer.hidden = true;
       confirmFile.textContent = "";
       deleteButton.disabled = true;
       showHint("正在从盒子磁盘永久删除，请稍候…");
-      albumAction("delete", { file: file })
+      albumAction("delete", { file: file, path: path })
         .then(function (data) {
           const link = photoLinks[currentIndex];
           if (link) hideLink(link);
@@ -484,6 +526,25 @@
       pendingDelete = null;
     }
 
+    tagButton.addEventListener("click", function () {
+      const link = photoLinks[currentIndex];
+      const file = link && link.getAttribute("data-photo-file");
+      if (!file) {
+        showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
+        return;
+      }
+      const tag = window.prompt("给这张照片标注景点（留空取消）：", "");
+      if (tag === null || !tag.trim()) return;
+      const path = link.getAttribute("data-photo-path");
+      tagButton.disabled = true;
+      albumAction("tag", { file: file, path: path || file, tag: tag.trim() })
+        .then(function (data) { showHint(data.message || "已标注景点", 5000); })
+        .catch(function (error) {
+          showHint("标注失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+        })
+        .then(function () { tagButton.disabled = false; });
+    });
+
     deleteButton.addEventListener("click", function () {
       const link = photoLinks[currentIndex];
       const file = link && link.getAttribute("data-photo-file");
@@ -491,7 +552,7 @@
         showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
         return;
       }
-      openDeleteConfirm(file);
+      openDeleteConfirm(file, link.getAttribute("data-photo-path"));
     });
 
     confirmCancel.addEventListener("click", closeDeleteConfirm);
@@ -1014,7 +1075,7 @@
       if (event.key !== "Tab") return;
 
       const focusable = zoomButtons
-        .concat([coverButton, deleteButton, closeButton, prevButton, nextButton])
+        .concat([coverButton, tagButton, deleteButton, closeButton, prevButton, nextButton])
         .filter(function (button) {
           return !button.hidden && !button.disabled && button.offsetParent !== null;
         });

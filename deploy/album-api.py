@@ -28,12 +28,13 @@ sys.path.insert(0, "/root/lixin/digital_album/tools")
 import set_cover as cover  # noqa: E402
 import hide_photo as hide  # noqa: E402
 import book_photos  # noqa: E402
+import tag_photos  # noqa: E402
 
 HOST = "127.0.0.1"
 PORT = 8765
 UPDATE = "/root/start_sh/update-album.sh"
 LOCK = threading.Lock()
-ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete"}
+ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete", "tag"}
 
 
 def find_photo(name: str):
@@ -53,7 +54,8 @@ def find_photo(name: str):
         raise ValueError(f"有 {len(matches)} 个同名文件，请用命令行指定册集")
     photo = matches[0]
     rel = photo.relative_to(cover.SOURCE)
-    album_dir = cover.SOURCE / rel.parts[0] if len(rel.parts) > 1 else cover.SOURCE
+    # 册集目录 = 照片所在文件夹（兼容多层级 数码/年份/地点、胶片/胶卷/日期）
+    album_dir = photo.parent if len(rel.parts) > 1 else cover.SOURCE
     return album_dir, photo.name
 
 
@@ -123,10 +125,25 @@ def apply_action(action: str, payload: dict) -> str:
             return book_photos.add(file_name)
         return book_photos.remove(file_name)
 
+    if action == "tag":
+        tag = str(payload.get("tag") or "").strip()
+        if not file_name or not tag:
+            raise ValueError("缺少照片文件名或标签")
+        return tag_photos.set_tag(file_name, tag)
+
     if action == "delete":
         if not file_name:
             raise ValueError("缺少照片文件名")
-        album_dir, name = find_photo(file_name)
+        rel_path = str(payload.get("path") or "").strip().lstrip("/")
+        if rel_path:
+            photo = (cover.SOURCE / rel_path).resolve()
+            if cover.SOURCE not in photo.parents or not photo.is_file():
+                raise ValueError(f"找不到照片 {rel_path}")
+        else:
+            album_dir, name = find_photo(file_name)
+            photo = album_dir / name
+        album_dir = photo.parent
+        name = photo.name
         config = cover.load_config(album_dir)
         changed = False
         if config.get("cover") == name:
@@ -152,6 +169,16 @@ def apply_action(action: str, payload: dict) -> str:
     raise ValueError("未知操作")
 
 
+def update_cover_page(photo_name: str) -> None:
+    """封面设置后只更新首页封面引用，避免整站重建导致 504。"""
+    result = subprocess.run(
+        [sys.executable, "/root/lixin/digital_album/deploy/update_cover_page.py", photo_name],
+        capture_output=True, text=True, timeout=30,
+    )
+    if result.returncode != 0:
+        print((result.stderr or '').strip()[-300:], file=sys.stderr)
+
+
 def rebuild() -> None:
     result = subprocess.run(
         ["bash", UPDATE], capture_output=True, text=True, timeout=300
@@ -159,6 +186,26 @@ def rebuild() -> None:
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip()[-400:]
         raise RuntimeError("重新生成失败：" + detail)
+
+
+_rebuild_timer: threading.Timer | None = None
+
+
+def rebuild_async() -> None:
+    """后台重建，20 秒防抖：连续删片期间的多次删除合并为一次重建。"""
+    global _rebuild_timer
+    if _rebuild_timer is not None:
+        _rebuild_timer.cancel()
+    def run():
+        subprocess.Popen(
+            ["bash", UPDATE],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    _rebuild_timer = threading.Timer(20.0, run)
+    _rebuild_timer.daemon = True
+    _rebuild_timer.start()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -205,9 +252,13 @@ class Handler(BaseHTTPRequestHandler):
         with LOCK:
             try:
                 message = apply_action(action, payload)
-                if action != "delete":
+                if action == "cover":
+                    update_cover_page(str(payload.get("file") or "").strip())
+                elif action == "delete":
+                    rebuild_async()
+                elif action != "tag":
                     rebuild()
-                self.send_json(200, {"ok": True, "message": message, "rebuilt": action != "delete"})
+                self.send_json(200, {"ok": True, "message": message, "rebuilt": action not in ("delete", "cover", "tag")})
             except SystemExit:
                 self.send_json(400, {"ok": False, "message": "找不到该册集或照片"})
             except Exception as exc:
