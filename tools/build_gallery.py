@@ -452,23 +452,20 @@ def find_album_roots(source: Path, depth: int) -> list[Path]:
     if depth == 0:
         return [source] if any(iter_images(source)) else []
     roots: list[Path] = []
+    film_roots: set[Path] = set()
     for path in sorted(source.rglob("*"), key=lambda p: natural_key(str(p))):
         if not path.is_dir() or any(part in SKIP_DIRS for part in path.parts):
             continue
         rel = path.relative_to(source)
-        if len(rel.parts) != depth:
+        # 胶片以“胶片/型号/日期”为结构：型号作为册集，日期作为章节。
+        if depth >= 2 and rel.parts and rel.parts[0] == "胶片":
+            if len(rel.parts) >= 2 and len(rel.parts) in (depth, depth - 1):
+                if any(iter_images(path)):
+                    film_roots.add(path.parent if len(rel.parts) == depth else path)
             continue
-        if any(iter_images(path)):
+        if len(rel.parts) == depth and any(iter_images(path)):
             roots.append(path)
-
-    # 胶片按顶层“胶片/”合并成一本册，内部再按日期分章。
-    film_root = source / "胶片"
-    if film_root.is_dir() and any(iter_images(film_root)):
-        roots = [
-            root for root in roots
-            if root != film_root and film_root not in root.parents
-        ]
-        roots.append(film_root)
+    roots.extend(sorted(film_roots, key=lambda p: natural_key(str(p))))
     return roots
 
 
@@ -661,29 +658,22 @@ def discover_chapter_dirs(album_dir: Path) -> list[Path]:
     return dirs
 
 
-def film_chapter_groups(film_root: Path) -> list[tuple[str, str, list[Path]]]:
-    """按路径里的日期文件夹把胶片照片分章，跨胶卷型号合并同日照片。"""
+def film_chapter_groups(stock_dir: Path) -> list[tuple[str, str, list[Path]]]:
+    """同一胶卷型号下按路径里的日期文件夹分章。"""
     groups: dict[str, list[Path]] = {}
-    stocks: dict[str, set[str]] = {}
-    for image in iter_images(film_root):
-        parts = image.relative_to(film_root).parts
+    for image in iter_images(stock_dir):
+        parts = image.relative_to(stock_dir).parts
         date_part = next(
             (part for part in reversed(parts[:-1]) if re.fullmatch(r"\d{8}", part)),
             None,
         )
         key = date_part or (parts[0] if len(parts) > 1 else "未分类")
         groups.setdefault(key, []).append(image)
-        if len(parts) > 1 and parts[0] != key:
-            stocks.setdefault(key, set()).add(parts[0])
 
     chapters: list[tuple[str, str, list[Path]]] = []
     for key in sorted(groups, key=natural_key):
-        if re.fullmatch(r"\d{8}", key):
-            title = f"{key[:4]}.{key[4:6]}.{key[6:]}"
-        else:
-            title = key
-        en = " · ".join(sorted(stocks.get(key, set()), key=natural_key))
-        chapters.append((title, en, groups[key]))
+        title = f"{key[:4]}.{key[4:6]}.{key[6:]}" if re.fullmatch(r"\d{8}", key) else key
+        chapters.append((title, "", groups[key]))
     return chapters
 
 
@@ -789,8 +779,8 @@ def build_album(
         return None
 
     rel = album_dir.relative_to(source)
-    is_film_album = len(rel.parts) == 1 and rel.parts[0] == "胶片"
-    default_title = "胶片集" if is_film_album else (
+    is_film_album = len(rel.parts) == 2 and rel.parts[0] == "胶片"
+    default_title = album_dir.name if is_film_album else (
         album_dir.name if not rel.parts else display_title(rel, depth)
     )
     default_location = "胶片" if is_film_album else (
@@ -798,7 +788,7 @@ def build_album(
     )
     title = str(config.get("title") or default_title).strip()
     subtitle = str(config.get("subtitle") or config.get("en") or "").strip()
-    slug_default = "film" if is_film_album else stable_slug(str(rel))
+    slug_default = stable_slug(str(rel))
     slug = str(config.get("slug") or slug_default).strip()
     slug = re.sub(r"[^A-Za-z0-9_-]+", "-", slug).strip("-")[:60]
     if not slug:
