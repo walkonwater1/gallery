@@ -271,7 +271,7 @@ _rebuild_timer: threading.Timer | None = None
 
 
 def rebuild_async() -> None:
-    """后台重建，20 秒防抖：连续删片期间的多次删除合并为一次重建。"""
+    """后台重建，5 秒防抖：连续操作合并为一次重建。"""
     global _rebuild_timer
     if _rebuild_timer is not None:
         _rebuild_timer.cancel()
@@ -282,7 +282,7 @@ def rebuild_async() -> None:
             stderr=subprocess.DEVNULL,
             start_new_session=True,
         )
-    _rebuild_timer = threading.Timer(20.0, run)
+    _rebuild_timer = threading.Timer(5.0, run)
     _rebuild_timer.daemon = True
     _rebuild_timer.start()
 

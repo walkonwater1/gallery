@@ -1235,11 +1235,12 @@
 
         const summary = "已完成 " + done + "/" + items.length + " 张" + (target ? "，目标：" + target : "");
         batchCount.textContent = summary;
-        showHint(summary + "，后台正在更新页面。", 6000);
+        showHint(summary + "，后台正在更新页面，稍后会自动刷新。", 8000);
         clearSelection();
         batchCount.textContent = summary;
         batchBar.hidden = false;
         window.setTimeout(updateBatchBar, 2500);
+        window.setTimeout(function () { window.location.reload(); }, 8000);
         button.disabled = false;
       };
 
@@ -1261,9 +1262,9 @@
             break;
           }
         }
-        showHint("已删除 " + done + "/" + items.length + " 张，后台正在更新页面。", 6000);
+        showHint("已删除 " + done + "/" + items.length + " 张，后台正在更新页面，稍后会自动刷新。", 8000);
         clearSelection();
-        window.setTimeout(function () { window.location.reload(); }, 1500);
+        window.setTimeout(function () { window.location.reload(); }, 8000);
         button.disabled = false;
       };
 
