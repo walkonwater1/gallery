@@ -339,6 +339,29 @@
       });
     }
 
+    let albumPickerEl = null;
+
+    function getAlbumPicker() {
+      if (albumPickerEl) return albumPickerEl;
+      const picker = document.createElement("div");
+      picker.className = "album-picker";
+      picker.hidden = true;
+      picker.innerHTML = [
+        '<div class="album-picker-box">',
+        '  <h2>选择目标数码册</h2>',
+        '  <input class="album-picker-search" type="search" placeholder="输入册名搜索" aria-label="搜索数码册">',
+        '  <select class="album-picker-list" size="9" aria-label="数码册列表"></select>',
+        '  <div class="album-picker-actions">',
+        '    <button type="button" data-album-cancel>取消</button>',
+        '    <button type="button" data-album-confirm>确定</button>',
+        "  </div>",
+        "</div>"
+      ].join("");
+      document.body.appendChild(picker);
+      albumPickerEl = picker;
+      return picker;
+    }
+
     function chooseDigitalAlbum() {
       return window.fetch("/api/albums", { cache: "no-store" })
         .then(function (response) { return response.json(); })
@@ -346,15 +369,44 @@
           if (!data.ok || !data.albums || !data.albums.length) {
             throw new Error("没有可用的数码册集");
           }
-          const list = data.albums.map(function (album, i) {
-            return (i + 1) + ". " + album;
-          }).join("\n");
-          const answer = window.prompt("选择要移动到的数码册序号：\n" + list, "1");
-          if (answer === null) return null;
-          const index = Number(answer.trim()) - 1;
-          const target = data.albums[index];
-          if (!target) throw new Error("无效的选择");
-          return target;
+          const albums = data.albums;
+          const picker = getAlbumPicker();
+          const search = picker.querySelector(".album-picker-search");
+          const list = picker.querySelector(".album-picker-list");
+          const confirm = picker.querySelector("[data-album-confirm]");
+          const cancel = picker.querySelector("[data-album-cancel]");
+
+          function render() {
+            const keyword = search.value.trim().toLowerCase();
+            const matches = albums.filter(function (album) {
+              return !keyword || album.toLowerCase().indexOf(keyword) >= 0;
+            });
+            list.innerHTML = matches.map(function (album) {
+              return '<option value="' + album.replace(/"/g, "&quot;") + '">' + album + "</option>";
+            }).join("");
+          }
+
+          search.value = "";
+          render();
+          picker.hidden = false;
+          search.focus();
+
+          return new Promise(function (resolve) {
+            function close(value) {
+              picker.hidden = true;
+              confirm.onclick = null;
+              cancel.onclick = null;
+              picker.onclick = null;
+              search.oninput = null;
+              resolve(value);
+            }
+            confirm.onclick = function () { close(list.value || null); };
+            cancel.onclick = function () { close(null); };
+            search.oninput = render;
+            picker.onclick = function (event) {
+              if (event.target === picker) close(null);
+            };
+          });
         });
     }
 
@@ -1138,9 +1190,53 @@
       ].join("");
       document.body.appendChild(batchBar);
 
+      batchBar.querySelector("[data-batch-tag]").onclick = function () {
+        const items = Array.from(selected.values());
+        if (!items.length) return;
+        const tag = window.prompt("给选中的 " + items.length + " 张照片统一标注景点：", "");
+        if (tag === null || !tag.trim()) return;
+        const needTarget = items.some(function (item) {
+          return (item.path || "").indexOf("胶片/") === 0;
+        });
+        const choice = needTarget ? chooseDigitalAlbum() : Promise.resolve(null);
+        this.disabled = true;
+        const button = this;
+        choice.then(function (target) {
+          const payload = { operation: "tag", items: items, tag: tag.trim() };
+          if (target) payload.target = target;
+          return albumAction("batch", payload);
+        })
+          .then(function (data) {
+            showHint(data.message || "已批量标注", 5000);
+            clearSelection();
+          })
+          .catch(function (error) {
+            showHint("批量标注失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+          })
+          .then(function () { button.disabled = false; });
+      };
+
+      batchBar.querySelector("[data-batch-delete]").onclick = function () {
+        const items = Array.from(selected.values());
+        if (!items.length) return;
+        if (!window.confirm("确定永久删除选中的 " + items.length + " 张照片？此操作不可恢复。")) return;
+        const button = this;
+        button.disabled = true;
+        albumAction("batch", { operation: "delete", items: items })
+          .then(function (data) {
+            showHint(data.message || "已批量删除", 8000);
+            clearSelection();
+            window.setTimeout(function () { window.location.reload(); }, 1200);
+          })
+          .catch(function (error) {
+            showHint("批量删除失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+          })
+          .then(function () { button.disabled = false; });
+      };
+
+      batchBar.querySelector("[data-batch-clear]").onclick = clearSelection;
+
       const batchCount = batchBar.querySelector(".batch-count");
-      const batchTagButton = batchBar.querySelector("[data-batch-tag]");
-      const batchDeleteButton = batchBar.querySelector("[data-batch-delete]");
 
       function updateBatchBar() {
         batchCount.textContent = "已选 " + selected.size + " 张";
@@ -1177,50 +1273,6 @@
         });
         figure.appendChild(box);
       });
-
-      batchTagButton.addEventListener("click", function () {
-        const items = Array.prototype.slice.call(selected.values());
-        if (!items.length) return;
-        const tag = window.prompt("给选中的 " + items.length + " 张照片统一标注景点：", "");
-        if (tag === null || !tag.trim()) return;
-        const needTarget = items.some(function (item) {
-          return (item.path || "").indexOf("胶片/") === 0;
-        });
-        const choice = needTarget ? chooseDigitalAlbum() : Promise.resolve(null);
-        batchTagButton.disabled = true;
-        choice.then(function (target) {
-          const payload = { operation: "tag", items: items, tag: tag.trim() };
-          if (target) payload.target = target;
-          return albumAction("batch", payload);
-        })
-          .then(function (data) {
-            showHint(data.message || "已批量标注", 5000);
-            clearSelection();
-          })
-          .catch(function (error) {
-            showHint("批量标注失败：" + (error && error.message ? error.message : "请检查盒子 API"));
-          })
-          .then(function () { batchTagButton.disabled = false; });
-      });
-
-      batchDeleteButton.addEventListener("click", function () {
-        const items = Array.prototype.slice.call(selected.values());
-        if (!items.length) return;
-        if (!window.confirm("确定永久删除选中的 " + items.length + " 张照片？此操作不可恢复。")) return;
-        batchDeleteButton.disabled = true;
-        albumAction("batch", { operation: "delete", items: items })
-          .then(function (data) {
-            showHint(data.message || "已批量删除", 8000);
-            clearSelection();
-            window.setTimeout(function () { window.location.reload(); }, 1200);
-          })
-          .catch(function (error) {
-            showHint("批量删除失败：" + (error && error.message ? error.message : "请检查盒子 API"));
-          })
-          .then(function () { batchDeleteButton.disabled = false; });
-      });
-
-      batchBar.querySelector("[data-batch-clear]").addEventListener("click", clearSelection);
     }
   }
 })();
