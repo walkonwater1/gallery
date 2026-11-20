@@ -1751,7 +1751,10 @@ ol {
   bottom: 24px;
   z-index: 80;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
+  max-width: calc(100vw - 24px);
   gap: 10px;
   padding: 10px 14px;
   transform: translateX(-50%);

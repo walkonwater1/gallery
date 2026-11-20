@@ -24,6 +24,8 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from PIL import Image, ImageOps
+
 sys.path.insert(0, "/root/lixin/digital_album/tools")
 import set_cover as cover  # noqa: E402
 import hide_photo as hide  # noqa: E402
@@ -33,6 +35,7 @@ import tag_photos  # noqa: E402
 HOST = "127.0.0.1"
 PORT = 8765
 UPDATE = "/root/start_sh/update-album.sh"
+CACHE = Path("/root/lixin/digital_album/.gallery-cache/manifest.json")
 LOCK = threading.Lock()
 ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete", "tag", "batch"}
 
@@ -72,6 +75,47 @@ def unique_destination(directory: Path, name: str) -> str:
         if not (directory / new_name).exists():
             return new_name
         index += 1
+
+
+def rotate_photo(item: dict, direction: str) -> str:
+    name = str(item.get("file") or "").strip()
+    rel_path = str(item.get("path") or "").strip().lstrip("/")
+    if not name:
+        raise ValueError("缺少照片文件名")
+    if rel_path:
+        photo = (cover.SOURCE / rel_path).resolve()
+        if cover.SOURCE not in photo.parents or not photo.is_file():
+            raise ValueError(f"找不到照片 {rel_path}")
+    else:
+        photo = find_photo_path(name)
+
+    tmp = photo.with_name(photo.stem + ".rotate.tmp" + photo.suffix)
+    with Image.open(photo) as opened:
+        image = ImageOps.exif_transpose(opened)
+        exif = image.getexif()
+        exif.pop(274, None)
+        angle = -90 if direction == "right" else 90
+        image = image.rotate(angle, expand=True)
+        suffix = photo.suffix.lower()
+        save_kwargs: dict = {}
+        if suffix in (".jpg", ".jpeg"):
+            image = image.convert("RGB")
+            save_kwargs = {"quality": 95, "subsampling": 0, "optimize": True}
+        if exif:
+            save_kwargs["exif"] = exif.tobytes()
+        image.save(tmp, **save_kwargs)
+    os.replace(tmp, photo)
+
+    if CACHE.is_file():
+        try:
+            doc = json.loads(CACHE.read_text(encoding="utf-8"))
+            photos = doc.get("photos") or {}
+            photos.pop(str(photo), None)
+            doc["photos"] = photos
+            CACHE.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+    return f"已向{'右' if direction == 'right' else '左'}旋转 {photo.name}"
 
 
 def find_photo_path(name: str) -> Path:
@@ -335,11 +379,16 @@ class Handler(BaseHTTPRequestHandler):
                 if action == "batch":
                     operation = str(payload.get("operation") or "").strip()
                     items = payload.get("items") or []
-                    if operation not in ("tag", "delete") or not isinstance(items, list):
+                    if operation not in ("tag", "delete", "rotate") or not isinstance(items, list):
                         raise ValueError("批量操作参数错误")
+                    direction = str(payload.get("direction") or "left").strip()
                     done = 0
                     for item in items:
                         if not isinstance(item, dict):
+                            continue
+                        if operation == "rotate":
+                            rotate_photo(item, direction)
+                            done += 1
                             continue
                         sub_payload = {
                             "file": str(item.get("file") or "").strip(),

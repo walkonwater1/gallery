@@ -1187,11 +1187,48 @@
       batchBar.hidden = true;
       batchBar.innerHTML = [
         '<span class="batch-count"></span>',
+        '<button type="button" data-batch-rotate-left>向左旋转</button>',
+        '<button type="button" data-batch-rotate-right>向右旋转</button>',
         '<button type="button" data-batch-tag>批量标景点</button>',
         '<button type="button" data-batch-delete>批量删除</button>',
         '<button type="button" data-batch-clear>取消选择</button>'
       ].join("");
       document.body.appendChild(batchBar);
+
+      async function rotateSelected(direction, button) {
+        const items = Array.from(selected.values());
+        if (!items.length) return;
+        const label = direction === "right" ? "右" : "左";
+        button.disabled = true;
+        let done = 0;
+        for (const item of items) {
+          batchCount.textContent = "正在" + label + "转 " + (done + 1) + "/" + items.length + " 张";
+          showHint("正在向" + label + "旋转：" + (done + 1) + "/" + items.length, 2500);
+          try {
+            await albumAction("batch", { operation: "rotate", direction: direction, items: [item] });
+            done += 1;
+          } catch (error) {
+            showHint("旋转失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+            break;
+          }
+        }
+        const summary = "已" + label + "转 " + done + "/" + items.length + " 张";
+        batchCount.textContent = summary;
+        showHint(summary + "，后台正在更新页面，稍后会自动刷新。", 8000);
+        clearSelection();
+        batchCount.textContent = summary;
+        batchBar.hidden = false;
+        window.setTimeout(updateBatchBar, 2500);
+        window.setTimeout(function () { window.location.reload(); }, 8000);
+        button.disabled = false;
+      }
+
+      batchBar.querySelector("[data-batch-rotate-left]").onclick = function () {
+        rotateSelected("left", this);
+      };
+      batchBar.querySelector("[data-batch-rotate-right]").onclick = function () {
+        rotateSelected("right", this);
+      };
 
       batchBar.querySelector("[data-batch-tag]").onclick = async function () {
         const items = Array.from(selected.values());
