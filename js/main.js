@@ -1175,9 +1175,11 @@
       }
     });
 
-    const chapterRoot = document.querySelector(".chapter");
-    if (chapterRoot) {
-      const figures = Array.prototype.slice.call(chapterRoot.querySelectorAll(".photo"));
+    const chapterRoots = Array.prototype.slice.call(document.querySelectorAll(".chapter"));
+    if (chapterRoots.length) {
+      const figures = chapterRoots.reduce(function (all, root) {
+        return all.concat(Array.prototype.slice.call(root.querySelectorAll(".photo")));
+      }, []);
       const selected = new Map();
 
       const batchBar = document.createElement("div");
