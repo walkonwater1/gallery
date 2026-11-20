@@ -37,7 +37,15 @@ LOCK = threading.Lock()
 ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete", "tag"}
 
 
-def find_photo(name: str):
+def album_root_for(photo: Path) -> Path:
+    rel = photo.relative_to(cover.SOURCE)
+    if rel.parts and rel.parts[0] == "胶片":
+        # 胶片册集按型号建册，日期只是册内小节。
+        return photo.parent.parent if len(rel.parts) >= 3 else photo.parent
+    return photo.parent if len(rel.parts) > 1 else cover.SOURCE
+
+
+def find_photo_path(name: str) -> Path:
     matches = sorted(
         (
             p
@@ -52,11 +60,12 @@ def find_photo(name: str):
         raise ValueError(f"找不到照片 {name}")
     if len(matches) > 1:
         raise ValueError(f"有 {len(matches)} 个同名文件，请用命令行指定册集")
-    photo = matches[0]
-    rel = photo.relative_to(cover.SOURCE)
-    # 册集目录 = 照片所在文件夹（兼容多层级 数码/年份/地点、胶片/胶卷/日期）
-    album_dir = photo.parent if len(rel.parts) > 1 else cover.SOURCE
-    return album_dir, photo.name
+    return matches[0]
+
+
+def find_photo(name: str):
+    photo = find_photo_path(name)
+    return album_root_for(photo), photo.name
 
 
 def book_state() -> dict:
@@ -140,9 +149,8 @@ def apply_action(action: str, payload: dict) -> str:
             if cover.SOURCE not in photo.parents or not photo.is_file():
                 raise ValueError(f"找不到照片 {rel_path}")
         else:
-            album_dir, name = find_photo(file_name)
-            photo = album_dir / name
-        album_dir = photo.parent
+            photo = find_photo_path(file_name)
+        album_dir = album_root_for(photo)
         name = photo.name
         config = cover.load_config(album_dir)
         changed = False
@@ -159,10 +167,9 @@ def apply_action(action: str, payload: dict) -> str:
         if changed:
             cover.save_config(album_dir, config)
         try:
-            book_photos.remove(name)
-        except Exception:
+            book_photos.remove(name, photo_path=photo)
+        except (Exception, SystemExit):
             pass
-        photo = album_dir / name
         os.remove(photo)
         return f"已永久删除 {name}（{album_dir.name}）"
 

@@ -133,8 +133,8 @@ def add(name: str, reference: str | Path | None = None) -> str:
     return f"已加入画册：{photo.name}"
 
 
-def remove(name: str, reference: str | Path | None = None) -> str:
-    photo = find_photo(name)
+def remove(name: str, reference: str | Path | None = None, photo_path: str | Path | None = None) -> str:
+    photo = Path(photo_path).expanduser().resolve() if photo_path else find_photo(name)
     config = load(reference)
     config["added"] = [n for n in config["added"] if n != photo.name]
     try:
