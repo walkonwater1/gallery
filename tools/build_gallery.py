@@ -677,6 +677,35 @@ def film_chapter_groups(stock_dir: Path) -> list[tuple[str, str, list[Path]]]:
     return chapters
 
 
+def tag_chapter_groups(album_dir: Path) -> list[tuple[str, list[Path]]]:
+    """把 album.json 里打了标签的照片聚合成独立章节。"""
+    groups: dict[str, list[Path]] = {}
+    configs = [album_dir / "album.json"]
+    configs.extend(sorted(album_dir.rglob("album.json")))
+    seen_configs: set[Path] = set()
+    for config_path in configs:
+        resolved = config_path.resolve()
+        if resolved in seen_configs or not config_path.is_file():
+            continue
+        seen_configs.add(resolved)
+        tags = load_json(config_path).get("tags") or {}
+        if not isinstance(tags, dict):
+            continue
+        for name, raw_tag in tags.items():
+            if not isinstance(raw_tag, str) or not raw_tag.strip():
+                continue
+            tag = raw_tag.strip().strip("/\\")
+            photo = config_path.parent / Path(str(name)).name
+            if not photo.is_file():
+                matches = sorted(album_dir.rglob(Path(str(name)).name))
+                if not matches:
+                    continue
+                photo = matches[0]
+            if photo not in groups.setdefault(tag, []):
+                groups[tag].append(photo)
+    return [(tag, groups[tag]) for tag in sorted(groups, key=natural_key)]
+
+
 def build_chapter(
     source: Path,
     output_root: Path,
@@ -803,6 +832,17 @@ def build_album(
         chapter_config = {}
 
     chapters: list[Chapter] = []
+
+    # 标签集合优先成章，后续普通章节会通过去重排除已归入标签的照片。
+    for tag, images in tag_chapter_groups(album_dir):
+        chapters.append(build_chapter(
+            source, output_root, album_dir, None,
+            tag, "", "", "", "",
+            slug, config, location,
+            cache, options_key, max_edge, quality, force,
+            extra_images=images,
+            reuse_cache_slug=is_film_album,
+        ))
 
     if is_film_album:
         for chapter_title, chapter_en, images in film_chapter_groups(album_dir):
