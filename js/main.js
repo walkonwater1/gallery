@@ -384,6 +384,7 @@
             list.innerHTML = matches.map(function (album) {
               return '<option value="' + album.replace(/"/g, "&quot;") + '">' + album + "</option>";
             }).join("");
+            if (list.options.length) list.selectedIndex = 0;
           }
 
           search.value = "";
