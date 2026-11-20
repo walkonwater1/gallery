@@ -1121,5 +1121,106 @@
         first.focus();
       }
     });
+
+    const chapterRoot = document.querySelector(".chapter");
+    if (chapterRoot) {
+      const figures = Array.prototype.slice.call(chapterRoot.querySelectorAll(".photo"));
+      const selected = new Map();
+
+      const batchBar = document.createElement("div");
+      batchBar.className = "batch-bar";
+      batchBar.hidden = true;
+      batchBar.innerHTML = [
+        '<span class="batch-count"></span>',
+        '<button type="button" data-batch-tag>批量标景点</button>',
+        '<button type="button" data-batch-delete>批量删除</button>',
+        '<button type="button" data-batch-clear>取消选择</button>'
+      ].join("");
+      document.body.appendChild(batchBar);
+
+      const batchCount = batchBar.querySelector(".batch-count");
+      const batchTagButton = batchBar.querySelector("[data-batch-tag]");
+      const batchDeleteButton = batchBar.querySelector("[data-batch-delete]");
+
+      function updateBatchBar() {
+        batchCount.textContent = "已选 " + selected.size + " 张";
+        batchBar.hidden = selected.size === 0;
+      }
+
+      function clearSelection() {
+        selected.clear();
+        figures.forEach(function (figure) {
+          const box = figure.querySelector(".photo-select");
+          if (box) box.checked = false;
+        });
+        updateBatchBar();
+      }
+
+      figures.forEach(function (figure) {
+        const link = figure.querySelector(".photo-link[data-photo-file]");
+        if (!link) return;
+        const key = link.getAttribute("data-photo-path") || link.getAttribute("data-photo-file");
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.className = "photo-select";
+        box.setAttribute("aria-label", "选择这张照片");
+        box.addEventListener("change", function () {
+          if (box.checked) {
+            selected.set(key, {
+              file: link.getAttribute("data-photo-file"),
+              path: key
+            });
+          } else {
+            selected.delete(key);
+          }
+          updateBatchBar();
+        });
+        figure.appendChild(box);
+      });
+
+      batchTagButton.addEventListener("click", function () {
+        const items = Array.prototype.slice.call(selected.values());
+        if (!items.length) return;
+        const tag = window.prompt("给选中的 " + items.length + " 张照片统一标注景点：", "");
+        if (tag === null || !tag.trim()) return;
+        const needTarget = items.some(function (item) {
+          return (item.path || "").indexOf("胶片/") === 0;
+        });
+        const choice = needTarget ? chooseDigitalAlbum() : Promise.resolve(null);
+        batchTagButton.disabled = true;
+        choice.then(function (target) {
+          const payload = { operation: "tag", items: items, tag: tag.trim() };
+          if (target) payload.target = target;
+          return albumAction("batch", payload);
+        })
+          .then(function (data) {
+            showHint(data.message || "已批量标注", 5000);
+            clearSelection();
+          })
+          .catch(function (error) {
+            showHint("批量标注失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+          })
+          .then(function () { batchTagButton.disabled = false; });
+      });
+
+      batchDeleteButton.addEventListener("click", function () {
+        const items = Array.prototype.slice.call(selected.values());
+        if (!items.length) return;
+        if (!window.confirm("确定永久删除选中的 " + items.length + " 张照片？此操作不可恢复。")) return;
+        batchDeleteButton.disabled = true;
+        albumAction("batch", { operation: "delete", items: items })
+          .then(function (data) {
+            showHint(data.message || "已批量删除", 8000);
+            clearSelection();
+            window.setTimeout(function () { window.location.reload(); }, 1200);
+          })
+          .catch(function (error) {
+            showHint("批量删除失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+          })
+          .then(function () { batchDeleteButton.disabled = false; });
+      });
+
+      batchBar.querySelector("[data-batch-clear]").addEventListener("click", clearSelection);
+    }
   }
 })();

@@ -34,7 +34,7 @@ HOST = "127.0.0.1"
 PORT = 8765
 UPDATE = "/root/start_sh/update-album.sh"
 LOCK = threading.Lock()
-ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete", "tag"}
+ACTIONS = {"cover", "clear-cover", "hide", "show", "book-add", "book-remove", "delete", "tag", "batch"}
 
 
 def album_root_for(photo: Path) -> Path:
@@ -332,16 +332,35 @@ class Handler(BaseHTTPRequestHandler):
 
         with LOCK:
             try:
-                message = apply_action(action, payload)
+                if action == "batch":
+                    operation = str(payload.get("operation") or "").strip()
+                    items = payload.get("items") or []
+                    if operation not in ("tag", "delete") or not isinstance(items, list):
+                        raise ValueError("批量操作参数错误")
+                    done = 0
+                    for item in items:
+                        if not isinstance(item, dict):
+                            continue
+                        sub_payload = {
+                            "file": str(item.get("file") or "").strip(),
+                            "path": str(item.get("path") or "").strip(),
+                        }
+                        if operation == "tag":
+                            sub_payload["tag"] = str(payload.get("tag") or "").strip()
+                            if payload.get("target"):
+                                sub_payload["target"] = str(payload["target"]).strip()
+                        apply_action(operation, sub_payload)
+                        done += 1
+                    message = f"已批量处理 {done} 张照片"
+                else:
+                    message = apply_action(action, payload)
                 if action == "cover":
                     update_cover_page(str(payload.get("file") or "").strip())
-                elif action == "delete":
-                    rebuild_async()
-                elif action == "tag":
+                elif action in ("delete", "tag", "batch"):
                     rebuild_async()
                 else:
                     rebuild()
-                self.send_json(200, {"ok": True, "message": message, "rebuilt": action not in ("delete", "cover", "tag")})
+                self.send_json(200, {"ok": True, "message": message, "rebuilt": action not in ("delete", "cover", "tag", "batch")})
             except SystemExit:
                 self.send_json(400, {"ok": False, "message": "找不到该册集或照片"})
             except Exception as exc:
