@@ -1792,6 +1792,82 @@ ol {
   border-color: rgba(228, 161, 147, 0.35);
 }
 
+.album-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 11, 9, 0.72);
+}
+
+.album-picker[hidden] {
+  display: none;
+}
+
+.album-picker-box {
+  width: min(560px, calc(100vw - 32px));
+  padding: 24px;
+  border: 1px solid rgba(241, 236, 223, 0.16);
+  border-radius: 4px;
+  background: #1d1c18;
+  color: #f4f0e8;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-sans);
+}
+
+.album-picker-box h2 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.album-picker-search,
+.album-picker-list {
+  width: 100%;
+  border: 1px solid rgba(241, 236, 223, 0.2);
+  border-radius: 2px;
+  background: #24221c;
+  color: #f4f0e8;
+  font: inherit;
+}
+
+.album-picker-search {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.album-picker-list {
+  padding: 6px;
+}
+
+.album-picker-list option {
+  padding: 6px 8px;
+}
+
+.album-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.album-picker-actions button {
+  padding: 7px 14px;
+  border: 1px solid rgba(241, 236, 223, 0.24);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.album-picker-actions button[data-album-confirm] {
+  border-color: rgba(179, 154, 107, 0.7);
+  color: #e8c98f;
+}
+
 .photo + .photo,
 .photo-grid + .photo,
 .photo + .photo-grid {
