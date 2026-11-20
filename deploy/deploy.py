@@ -61,6 +61,7 @@ def clean(html: str, active: str = 'gallery') -> str:
     html = html.replace('href="gallery.html"', 'href="index.html"')
     html = html.replace('href="css/style.css"', f'href="css/style.css?v={STAMP}"')
     html = html.replace('src="js/main.js"', f'src="js/main.js?v={STAMP}"')
+    html = html.replace('href="assets/favicon.svg"', f'href="assets/favicon.svg?v={STAMP}"')
     return html
 
 
