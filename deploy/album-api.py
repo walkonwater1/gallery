@@ -45,6 +45,35 @@ def album_root_for(photo: Path) -> Path:
     return photo.parent if len(rel.parts) > 1 else cover.SOURCE
 
 
+def list_digital_albums() -> list[str]:
+    root = cover.SOURCE / "数码"
+    if not root.is_dir():
+        return []
+    albums: list[str] = []
+    for path in sorted(root.rglob("*"), key=lambda p: str(p)):
+        if not path.is_dir() or path.name.startswith("."):
+            continue
+        rel = path.relative_to(cover.SOURCE)
+        if len(rel.parts) != 3 or rel.parts[0] != "数码":
+            continue
+        if any(p.is_file() and p.suffix.lower() in cover.IMAGE_EXTS for p in path.iterdir()):
+            albums.append(str(rel))
+    return albums
+
+
+def unique_destination(directory: Path, name: str) -> str:
+    candidate = directory / name
+    if not candidate.exists():
+        return name
+    stem, suffix = Path(name).stem, Path(name).suffix
+    index = 1
+    while True:
+        new_name = f"{stem}_film{index}{suffix}"
+        if not (directory / new_name).exists():
+            return new_name
+        index += 1
+
+
 def find_photo_path(name: str) -> Path:
     matches = sorted(
         (
@@ -136,9 +165,52 @@ def apply_action(action: str, payload: dict) -> str:
 
     if action == "tag":
         tag = str(payload.get("tag") or "").strip()
+        target = str(payload.get("target") or "").strip().strip("/\\")
         if not file_name or not tag:
             raise ValueError("缺少照片文件名或标签")
-        return tag_photos.set_tag(file_name, tag)
+        if not target:
+            return tag_photos.set_tag(file_name, tag)
+
+        if not target.startswith("数码/"):
+            raise ValueError("目标必须是数码册集")
+        dest_dir = (cover.SOURCE / target).resolve()
+        if cover.SOURCE not in dest_dir.parents or not dest_dir.is_dir():
+            raise ValueError(f"找不到目标册集 {target}")
+
+        rel_path = str(payload.get("path") or "").strip().lstrip("/")
+        if rel_path:
+            photo = (cover.SOURCE / rel_path).resolve()
+            if cover.SOURCE not in photo.parents or not photo.is_file():
+                raise ValueError(f"找不到照片 {rel_path}")
+        else:
+            photo = find_photo_path(file_name)
+
+        old_name = photo.name
+        old_config_dirs = sorted({photo.parent, album_root_for(photo)}, key=str)
+        new_name = unique_destination(dest_dir, old_name)
+        dest = dest_dir / new_name
+        os.replace(photo, dest)
+        tag_photos.migrate_cache([(photo, dest)])
+
+        for config_dir in old_config_dirs:
+            config = tag_photos.load_config(config_dir)
+            tags = config.get("tags") or {}
+            if isinstance(tags, dict) and old_name in tags:
+                tags.pop(old_name, None)
+                if tags:
+                    config["tags"] = tags
+                else:
+                    config.pop("tags", None)
+                tag_photos.save_config(config_dir, config)
+
+        config = tag_photos.load_config(dest_dir)
+        tags = config.get("tags") or {}
+        if not isinstance(tags, dict):
+            tags = {}
+        tags[new_name] = tag
+        config["tags"] = tags
+        tag_photos.save_config(dest_dir, config)
+        return f"已将 {new_name} 移到《{dest_dir.parent.name}/{dest_dir.name}》并标注 {tag}"
 
     if action == "delete":
         if not file_name:
@@ -239,6 +311,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(400, {"ok": False, "message": "画册默认册集不存在"})
             except Exception as exc:
                 self.send_json(500, {"ok": False, "message": str(exc)[:300]})
+        elif path == "/api/albums":
+            self.send_json(200, {"ok": True, "albums": list_digital_albums()})
         else:
             self.send_json(404, {"ok": False, "message": "not found"})
 

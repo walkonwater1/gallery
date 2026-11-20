@@ -339,6 +339,25 @@
       });
     }
 
+    function chooseDigitalAlbum() {
+      return window.fetch("/api/albums", { cache: "no-store" })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+          if (!data.ok || !data.albums || !data.albums.length) {
+            throw new Error("没有可用的数码册集");
+          }
+          const list = data.albums.map(function (album, i) {
+            return (i + 1) + ". " + album;
+          }).join("\n");
+          const answer = window.prompt("选择要移动到的数码册序号：\n" + list, "1");
+          if (answer === null) return null;
+          const index = Number(answer.trim()) - 1;
+          const target = data.albums[index];
+          if (!target) throw new Error("无效的选择");
+          return target;
+        });
+    }
+
     function finishAction(message) {
       showHint(message + "，页面即将刷新显示最新结果…", 8000);
       window.setTimeout(function () {
@@ -533,12 +552,22 @@
         showHint("这张照片没有文件名信息，请运行一次 bash /root/start_sh/update-album.sh 重新生成。");
         return;
       }
+      const path = link.getAttribute("data-photo-path") || file;
       const tag = window.prompt("给这张照片标注景点（留空取消）：", "");
       if (tag === null || !tag.trim()) return;
-      const path = link.getAttribute("data-photo-path");
+
+      const isFilm = path.indexOf("胶片/") === 0;
       tagButton.disabled = true;
-      albumAction("tag", { file: file, path: path || file, tag: tag.trim() })
-        .then(function (data) { showHint(data.message || "已标注景点", 5000); })
+      const choice = isFilm ? chooseDigitalAlbum() : Promise.resolve(null);
+      choice.then(function (target) {
+        if (isFilm && !target) return null;
+        const payload = { file: file, path: path, tag: tag.trim() };
+        if (target) payload.target = target;
+        return albumAction("tag", payload);
+      })
+        .then(function (data) {
+          if (data) showHint(data.message || "已标注景点", 5000);
+        })
         .catch(function (error) {
           showHint("标注失败：" + (error && error.message ? error.message : "请检查盒子 API"));
         })
