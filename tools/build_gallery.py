@@ -841,6 +841,20 @@ def build_album(
 
     chapters: list[Chapter] = []
     tag_chapters: list[Chapter] = []
+    tagged_digests: set[str] = set()
+
+    # 先构建标签章节，记录已归类的照片，再从普通章节中排除。
+    for tag, images in tag_chapter_groups(album_dir):
+        chapter = build_chapter(
+            source, output_root, album_dir, None,
+            tag, "", "", "", "",
+            slug, config, location,
+            cache, options_key, max_edge, quality, force,
+            extra_images=images,
+            reuse_cache_slug=is_film_album,
+        )
+        tag_chapters.append(chapter)
+        tagged_digests.update(photo.digest for photo in chapter.photos)
 
     if is_film_album:
         for chapter_title, chapter_en, images in film_chapter_groups(album_dir):
@@ -892,28 +906,15 @@ def build_album(
                 cache, options_key, max_edge, quality, force,
             ))
 
-    for tag, images in tag_chapter_groups(album_dir):
-        chapter = build_chapter(
-            source, output_root, album_dir, None,
-            tag, "", "", "", "",
-            slug, config, location,
-            cache, options_key, max_edge, quality, force,
-            extra_images=images,
-            reuse_cache_slug=is_film_album,
-        )
-        chapters.append(chapter)
-        tag_chapters.append(chapter)
+    # 已归入标签的照片不再出现在默认/原有章节里。
+    for chapter in chapters:
+        chapter.photos = [
+            photo for photo in chapter.photos
+            if photo.digest not in tagged_digests
+        ]
 
-    chapters = [ch for ch in chapters if ch.photos]
-    if not chapters:
-        return None
-
-    # 普通章节只保留第一次出现的照片；标签章节是集合展示，保留全部。
-    tag_ids = {id(ch) for ch in tag_chapters}
     seen_digests: set[str] = set()
     for chapter in chapters:
-        if id(chapter) in tag_ids:
-            continue
         unique_photos = []
         for photo in chapter.photos:
             if photo.digest in seen_digests:
@@ -921,6 +922,8 @@ def build_album(
             seen_digests.add(photo.digest)
             unique_photos.append(photo)
         chapter.photos = unique_photos
+
+    chapters.extend(ch for ch in tag_chapters if ch.photos)
     chapters = [ch for ch in chapters if ch.photos]
     if not chapters:
         return None
