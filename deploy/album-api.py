@@ -263,7 +263,9 @@ class Handler(BaseHTTPRequestHandler):
                     update_cover_page(str(payload.get("file") or "").strip())
                 elif action == "delete":
                     rebuild_async()
-                elif action != "tag":
+                elif action == "tag":
+                    rebuild_async()
+                else:
                     rebuild()
                 self.send_json(200, {"ok": True, "message": message, "rebuilt": action not in ("delete", "cover", "tag")})
             except SystemExit:
