@@ -1191,48 +1191,78 @@
       ].join("");
       document.body.appendChild(batchBar);
 
-      batchBar.querySelector("[data-batch-tag]").onclick = function () {
+      batchBar.querySelector("[data-batch-tag]").onclick = async function () {
         const items = Array.from(selected.values());
         if (!items.length) return;
         const tag = window.prompt("给选中的 " + items.length + " 张照片统一标注景点：", "");
         if (tag === null || !tag.trim()) return;
+        const button = this;
+        button.disabled = true;
+
+        let target = null;
         const needTarget = items.some(function (item) {
           return (item.path || "").indexOf("胶片/") === 0;
         });
-        const choice = needTarget ? chooseDigitalAlbum() : Promise.resolve(null);
-        this.disabled = true;
-        const button = this;
-        choice.then(function (target) {
-          const payload = { operation: "tag", items: items, tag: tag.trim() };
+        if (needTarget) {
+          batchCount.textContent = "正在选择目标册…";
+          target = await chooseDigitalAlbum();
+          if (!target) {
+            button.disabled = false;
+            updateBatchBar();
+            return;
+          }
+        }
+
+        let done = 0;
+        for (const item of items) {
+          batchCount.textContent = "正在处理 " + (done + 1) + "/" + items.length + " 张";
+          showHint(
+            (target ? "正在移动到 " + target + "：" : "正在标注：") + (done + 1) + "/" + items.length,
+            2500
+          );
+          const payload = { file: item.file, path: item.path, tag: tag.trim() };
           if (target) payload.target = target;
-          return albumAction("batch", payload);
-        })
-          .then(function (data) {
-            showHint(data.message || "已批量标注", 5000);
-            clearSelection();
-          })
-          .catch(function (error) {
-            showHint("批量标注失败：" + (error && error.message ? error.message : "请检查盒子 API"));
-          })
-          .then(function () { button.disabled = false; });
+          try {
+            await albumAction("tag", payload);
+            done += 1;
+          } catch (error) {
+            showHint("处理失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+            break;
+          }
+        }
+
+        const summary = "已完成 " + done + "/" + items.length + " 张" + (target ? "，目标：" + target : "");
+        batchCount.textContent = summary;
+        showHint(summary + "，后台正在更新页面。", 6000);
+        clearSelection();
+        batchCount.textContent = summary;
+        batchBar.hidden = false;
+        window.setTimeout(updateBatchBar, 2500);
+        button.disabled = false;
       };
 
-      batchBar.querySelector("[data-batch-delete]").onclick = function () {
+      batchBar.querySelector("[data-batch-delete]").onclick = async function () {
         const items = Array.from(selected.values());
         if (!items.length) return;
         if (!window.confirm("确定永久删除选中的 " + items.length + " 张照片？此操作不可恢复。")) return;
         const button = this;
         button.disabled = true;
-        albumAction("batch", { operation: "delete", items: items })
-          .then(function (data) {
-            showHint(data.message || "已批量删除", 8000);
-            clearSelection();
-            window.setTimeout(function () { window.location.reload(); }, 1200);
-          })
-          .catch(function (error) {
-            showHint("批量删除失败：" + (error && error.message ? error.message : "请检查盒子 API"));
-          })
-          .then(function () { button.disabled = false; });
+        let done = 0;
+        for (const item of items) {
+          batchCount.textContent = "正在删除 " + (done + 1) + "/" + items.length + " 张";
+          showHint("正在删除：" + (done + 1) + "/" + items.length, 2500);
+          try {
+            await albumAction("delete", { file: item.file, path: item.path });
+            done += 1;
+          } catch (error) {
+            showHint("删除失败：" + (error && error.message ? error.message : "请检查盒子 API"));
+            break;
+          }
+        }
+        showHint("已删除 " + done + "/" + items.length + " 张，后台正在更新页面。", 6000);
+        clearSelection();
+        window.setTimeout(function () { window.location.reload(); }, 1500);
+        button.disabled = false;
       };
 
       batchBar.querySelector("[data-batch-clear]").onclick = clearSelection;
