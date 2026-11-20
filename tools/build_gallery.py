@@ -142,7 +142,15 @@ class Album:
 
     @property
     def photos(self) -> list[Photo]:
-        return [p for ch in self.chapters for p in ch.photos]
+        seen: set[str] = set()
+        result: list[Photo] = []
+        for chapter in self.chapters:
+            for photo in chapter.photos:
+                if photo.digest in seen:
+                    continue
+                seen.add(photo.digest)
+                result.append(photo)
+        return result
 
     @property
     def count(self) -> int:
@@ -832,17 +840,7 @@ def build_album(
         chapter_config = {}
 
     chapters: list[Chapter] = []
-
-    # 标签集合优先成章，后续普通章节会通过去重排除已归入标签的照片。
-    for tag, images in tag_chapter_groups(album_dir):
-        chapters.append(build_chapter(
-            source, output_root, album_dir, None,
-            tag, "", "", "", "",
-            slug, config, location,
-            cache, options_key, max_edge, quality, force,
-            extra_images=images,
-            reuse_cache_slug=is_film_album,
-        ))
+    tag_chapters: list[Chapter] = []
 
     if is_film_album:
         for chapter_title, chapter_en, images in film_chapter_groups(album_dir):
@@ -894,13 +892,28 @@ def build_album(
                 cache, options_key, max_edge, quality, force,
             ))
 
+    for tag, images in tag_chapter_groups(album_dir):
+        chapter = build_chapter(
+            source, output_root, album_dir, None,
+            tag, "", "", "", "",
+            slug, config, location,
+            cache, options_key, max_edge, quality, force,
+            extra_images=images,
+            reuse_cache_slug=is_film_album,
+        )
+        chapters.append(chapter)
+        tag_chapters.append(chapter)
+
     chapters = [ch for ch in chapters if ch.photos]
     if not chapters:
         return None
 
-    # 同一册里重复出现的照片只保留第一次。
+    # 普通章节只保留第一次出现的照片；标签章节是集合展示，保留全部。
+    tag_ids = {id(ch) for ch in tag_chapters}
     seen_digests: set[str] = set()
     for chapter in chapters:
+        if id(chapter) in tag_ids:
+            continue
         unique_photos = []
         for photo in chapter.photos:
             if photo.digest in seen_digests:
@@ -912,7 +925,14 @@ def build_album(
     if not chapters:
         return None
 
-    all_photos = [p for ch in chapters for p in ch.photos]
+    all_photos: list[Photo] = []
+    all_seen: set[str] = set()
+    for chapter in chapters:
+        for photo in chapter.photos:
+            if photo.digest in all_seen:
+                continue
+            all_seen.add(photo.digest)
+            all_photos.append(photo)
     all_photos.sort(key=lambda p: (p.taken_at or datetime.min, p.rel_source.lower()))
 
     cover: Photo | None = None
