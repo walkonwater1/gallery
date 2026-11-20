@@ -639,8 +639,13 @@ def build_photo_caption(photo: Photo, location: str, configured: str) -> str:
     if configured:
         return configured
     parts = [photo.date_label]
-    if photo.camera:
-        parts.append(photo.camera)
+    relative = Path(photo.rel_source)
+    camera = photo.camera
+    # 胶片扫描件的 EXIF 相机通常是扫描仪型号，改用“胶片/型号/”里的型号。
+    if len(relative.parts) >= 2 and relative.parts[0] == "胶片":
+        camera = relative.parts[1]
+    if camera:
+        parts.append(camera)
     parts.extend(
         [
             photo.aperture,
