@@ -1309,9 +1309,20 @@
 
       const batchCount = batchBar.querySelector(".batch-count");
 
+      function syncChapterButtons() {
+        document.querySelectorAll("[data-select-chapter]").forEach(function (button) {
+          const root = button.closest(".chapter");
+          if (!root) return;
+          const boxes = Array.prototype.slice.call(root.querySelectorAll(".photo-select"));
+          const allSelected = boxes.length > 0 && boxes.every(function (box) { return box.checked; });
+          button.textContent = allSelected ? "取消全选" : "全选本章";
+        });
+      }
+
       function updateBatchBar() {
         batchCount.textContent = "已选 " + selected.size + " 张";
         batchBar.hidden = selected.size === 0;
+        syncChapterButtons();
       }
 
       function clearSelection() {
@@ -1343,6 +1354,22 @@
           updateBatchBar();
         });
         figure.appendChild(box);
+      });
+
+      chapterRoots.forEach(function (root) {
+        const button = root.querySelector("[data-select-chapter]");
+        if (!button) return;
+        button.onclick = function () {
+          const boxes = Array.prototype.slice.call(root.querySelectorAll(".photo-select"));
+          if (!boxes.length) return;
+          const allSelected = boxes.every(function (box) { return box.checked; });
+          boxes.forEach(function (box) {
+            if (box.checked !== allSelected) return;
+            box.checked = !allSelected;
+            box.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+          syncChapterButtons();
+        };
       });
     }
   }

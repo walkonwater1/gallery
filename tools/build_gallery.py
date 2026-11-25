@@ -123,6 +123,7 @@ class Chapter:
     quote: str
     quote_cite: str
     photos: list[Photo]
+    is_tag: bool = False
 
 
 @dataclass
@@ -746,6 +747,7 @@ def build_chapter(
     force: bool,
     extra_images: list[Path] | None = None,
     reuse_cache_slug: bool = False,
+    is_tag: bool = False,
 ) -> Chapter:
     if extra_images is not None:
         images = list(extra_images)
@@ -808,6 +810,7 @@ def build_chapter(
         quote=chapter_quote,
         quote_cite=chapter_quote_cite,
         photos=photos,
+        is_tag=is_tag,
     )
 
 
@@ -864,6 +867,7 @@ def build_album(
             cache, options_key, max_edge, quality, force,
             extra_images=images,
             reuse_cache_slug=is_film_album,
+            is_tag=True,
         )
         tag_chapters.append(chapter)
         tagged_digests.update(photo.digest for photo in chapter.photos)
@@ -1235,12 +1239,19 @@ def photos_html(photos: list[Photo], start_number: int = 1) -> str:
 def chapter_html(chapter: Chapter, index: int, is_last: bool, start_number: int) -> str:
     chapter_id = f"chapter-{index}"
     last_class = " chapter--last" if is_last else ""
-    en_label = chapter.en or "Photographs"
+    en_label = chapter.en or "Tag Chapter" if chapter.is_tag else chapter.en or "Photographs"
     en_small = f"<small>{e(chapter.en)}</small>" if chapter.en else ""
-    return f"""      <section class="chapter shell{last_class}" aria-labelledby="{chapter_id}">
+    select_all = (
+        '<button type="button" class="chapter-select-all" data-select-chapter '
+        'aria-label="全选本章照片">全选本章</button>'
+        if chapter.is_tag else ""
+    )
+    tag_class = " chapter-tag" if chapter.is_tag else ""
+    return f"""      <section class="chapter shell{tag_class}{last_class}" aria-labelledby="{chapter_id}">
         <div class="chapter-head">
           <p class="chapter-no">Chapter {index:02d}<span>{e(en_label)}</span></p>
           <h2 id="{chapter_id}">{e(chapter.title)}{en_small}</h2>
+          {select_all}
         </div>
 
 {photos_html(chapter.photos, start_number)}

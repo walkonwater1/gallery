@@ -48,6 +48,50 @@ def album_root_for(photo: Path) -> Path:
     return photo.parent if len(rel.parts) > 1 else cover.SOURCE
 
 
+def tag_config_root(photo: Path) -> Path:
+    rel = photo.relative_to(cover.SOURCE)
+    if rel.parts and rel.parts[0] == "胶片" and len(rel.parts) >= 3:
+        return cover.SOURCE / rel.parts[0] / rel.parts[1]
+    if rel.parts and rel.parts[0] == "数码" and len(rel.parts) >= 3:
+        return cover.SOURCE.joinpath(*rel.parts[:3])
+    return photo.parent
+
+
+def set_tag_at_path(rel_path: str, tag: str) -> str:
+    photo = (cover.SOURCE / rel_path).resolve()
+    if cover.SOURCE not in photo.parents or not photo.is_file():
+        raise ValueError(f"找不到照片 {rel_path}")
+    name = photo.name
+    root = tag_config_root(photo)
+    configs = [root / "album.json"]
+    configs.extend(sorted(root.rglob("album.json")))
+    seen: set[Path] = set()
+    for config_path in configs:
+        resolved = config_path.resolve()
+        if resolved in seen or not config_path.is_file():
+            continue
+        seen.add(resolved)
+        config = tag_photos.load_config(config_path.parent)
+        tags = config.get("tags") or {}
+        if not isinstance(tags, dict) or name not in tags:
+            continue
+        tags.pop(name, None)
+        if tags:
+            config["tags"] = tags
+        else:
+            config.pop("tags", None)
+        tag_photos.save_config(config_path.parent, config)
+
+    config = tag_photos.load_config(root)
+    tags = config.get("tags") or {}
+    if not isinstance(tags, dict):
+        tags = {}
+    tags[name] = tag
+    config["tags"] = tags
+    tag_photos.save_config(root, config)
+    return f"已将《{root.relative_to(cover.SOURCE)}》{name} 标注为 {tag}"
+
+
 def list_digital_albums() -> list[str]:
     root = cover.SOURCE / "数码"
     if not root.is_dir():
@@ -212,7 +256,10 @@ def apply_action(action: str, payload: dict) -> str:
         target = str(payload.get("target") or "").strip().strip("/\\")
         if not file_name or not tag:
             raise ValueError("缺少照片文件名或标签")
+        rel_path = str(payload.get("path") or "").strip().lstrip("/")
         if not target:
+            if rel_path:
+                return set_tag_at_path(rel_path, tag)
             return tag_photos.set_tag(file_name, tag)
 
         if not target.startswith("数码/"):
@@ -221,7 +268,6 @@ def apply_action(action: str, payload: dict) -> str:
         if cover.SOURCE not in dest_dir.parents or not dest_dir.is_dir():
             raise ValueError(f"找不到目标册集 {target}")
 
-        rel_path = str(payload.get("path") or "").strip().lstrip("/")
         if rel_path:
             photo = (cover.SOURCE / rel_path).resolve()
             if cover.SOURCE not in photo.parents or not photo.is_file():
