@@ -61,6 +61,7 @@ Image.MAX_IMAGE_PIXELS = None
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT = ROOT
 DEFAULT_CACHE = ROOT / ".gallery-cache" / "manifest.json"
+DEFAULT_MISSING_CAMERA = "Olympus OM1 50 1.8"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import book_photos  # noqa: E402
@@ -637,13 +638,19 @@ def sidecar_caption(image_path: Path, config: dict[str, Any], album_dir: Path) -
 
 def build_photo_caption(photo: Photo, location: str, configured: str) -> str:
     if configured:
-        return configured
+        visible = configured
+        if photo.date_label and visible.startswith(photo.date_label):
+            visible = visible[len(photo.date_label):].lstrip(" ·")
+        if visible:
+            return configured
     parts = [photo.date_label]
     relative = Path(photo.rel_source)
     camera = photo.camera
     # 胶片扫描件的 EXIF 相机通常是扫描仪型号，改用“胶片/型号/”里的型号。
     if len(relative.parts) >= 2 and relative.parts[0] == "胶片":
         camera = relative.parts[1]
+    if not camera:
+        camera = DEFAULT_MISSING_CAMERA
     if camera:
         parts.append(camera)
     parts.extend(
